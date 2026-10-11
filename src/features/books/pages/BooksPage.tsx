@@ -1,7 +1,28 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import type { Book } from '../../../types'
+import type { Book, UserRole } from '../../../types'
 
 const STORAGE_KEY = 'biblioweb-books'
+const CURRENT_USER_KEY = 'biblioweb-current-user'
+
+type CurrentUserSession = {
+  email: string
+  name: string
+  role: UserRole
+}
+
+function getCurrentUser(): CurrentUserSession | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  try {
+    const currentUser = window.localStorage.getItem(CURRENT_USER_KEY)
+    return currentUser ? (JSON.parse(currentUser) as CurrentUserSession) : null
+  } catch (error) {
+    console.error('Error al leer el usuario actual:', error)
+    return null
+  }
+}
 
 const defaultBooks: Book[] = [
   { id: 1, title: 'El Quijote', author: 'Miguel de Cervantes', category: 'Clásico', available: true },
@@ -55,6 +76,8 @@ export function BooksPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState<BookFormData>(emptyForm)
+  const currentUser = getCurrentUser()
+  const isReader = currentUser?.role === 'lector'
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(books))
@@ -68,6 +91,10 @@ export function BooksPage() {
   }
 
   const openCreateForm = () => {
+    if (isReader) {
+      return
+    }
+
     setEditingId(null)
     setFormData(emptyForm)
     setError('')
@@ -75,6 +102,10 @@ export function BooksPage() {
   }
 
   const openEditForm = (book: Book) => {
+    if (isReader) {
+      return
+    }
+
     setEditingId(book.id)
     setFormData({
       title: book.title,
@@ -142,6 +173,10 @@ export function BooksPage() {
   }
 
   const handleDeleteBook = (bookId: number) => {
+    if (isReader) {
+      return
+    }
+
     const bookToDelete = books.find((book) => book.id === bookId)
 
     if (!bookToDelete) {
@@ -164,12 +199,14 @@ export function BooksPage() {
           <p className="eyebrow">Catálogo</p>
           <h1>Libros</h1>
         </div>
-        <button type="button" className="primary-button" onClick={openCreateForm}>
-          Nuevo libro
-        </button>
+        {!isReader && (
+          <button type="button" className="primary-button" onClick={openCreateForm}>
+            Nuevo libro
+          </button>
+        )}
       </div>
 
-      {showForm && (
+      {showForm && !isReader && (
         <form className="form-panel" onSubmit={handleSubmit}>
           <h2>{editingId !== null ? 'Editar libro' : 'Registrar nuevo libro'}</h2>
 
@@ -239,7 +276,7 @@ export function BooksPage() {
               <th>Autor</th>
               <th>Categoría</th>
               <th>Disponibilidad</th>
-              <th>Acciones</th>
+              {!isReader && <th>Acciones</th>}
             </tr>
           </thead>
           <tbody>
@@ -258,20 +295,22 @@ export function BooksPage() {
                       {book.available ? 'Disponible' : 'Prestado'}
                     </span>
                   </td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="table-button secondary-button" onClick={() => openEditForm(book)}>
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className="table-button danger-button"
-                        onClick={() => handleDeleteBook(book.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
+                  {!isReader && (
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="table-button secondary-button" onClick={() => openEditForm(book)}>
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="table-button danger-button"
+                          onClick={() => handleDeleteBook(book.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

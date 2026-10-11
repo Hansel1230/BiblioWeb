@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'bibliotecario' | 'lector'
+export type UserRole = 'admin' | 'lector'
 
 export type DashboardStat = {
   label: string
@@ -19,6 +19,7 @@ export type User = {
   id: number
   name: string
   email: string
+  password: string
   role: UserRole
   active: boolean
 }
@@ -26,6 +27,7 @@ export type User = {
 export type Loan = {
   id: number
   userName: string
+  userEmail: string
   bookTitle: string
   dueDate: string
   status: 'Activo' | 'Vencido' | 'Devuelto'
