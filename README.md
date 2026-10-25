@@ -118,6 +118,7 @@ src/
     books/                   # Catálogo, búsqueda y disponibilidad
     users/                   # Gestión de usuarios
     loans/                   # Préstamos y devoluciones
+    reservations/            # Reservas de libros
     reservations/            # Reservas en línea
     dashboard/               # Indicadores y panel administrativo
   components/                # Componentes reutilizables de interfaz
@@ -167,6 +168,51 @@ recursos no encontrados.
 Mientras se completa el contrato de la API .NET, dashboard y préstamos pueden
 usar un adaptador mock explícito. El modo mock no debe utilizarse en
 producción y no sustituye la autorización ni la persistencia del backend.
+
+## Alcance del Sprint 3
+
+El Sprint 3 incorpora los flujos principales del dominio:
+
+- `/catalog` es público y permite consultar libros sin autenticarse.
+- `/register` permite registrar lectores mediante `POST /auth/register`.
+- Los lectores pueden solicitar reservas mediante `POST /reservations`.
+- El modelo contempla ISBN, ejemplares, estados de ejemplar, reservas,
+  sanciones futuras y préstamos relacionados con entidades.
+- Las consultas de catálogo y reservas utilizan TanStack Query.
+
+El backend debe validar siempre disponibilidad, límites de reserva, sanciones,
+roles y duplicidad de reservas. El frontend solo refleja y previene acciones
+cuando cuenta con la información necesaria.
+
+Rutas principales:
+
+| Ruta | Acceso |
+| --- | --- |
+| `/catalog` | Público |
+| `/register` | Público |
+| `/login` | Público |
+| `/dashboard` | Administrador o lector |
+| `/books` | Administrador o lector |
+| `/loans` | Administrador o lector |
+| `/users` | Administrador |
+
+Contrato esperado para el registro:
+
+```json
+{
+  "name": "Nombre del lector",
+  "email": "lector@biblioweb.com",
+  "password": "contraseña segura"
+}
+```
+
+Contrato esperado para una reserva:
+
+```json
+{
+  "bookId": 1
+}
+```
 
 ## Integración con la API .NET
 

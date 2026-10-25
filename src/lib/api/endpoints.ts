@@ -4,4 +4,6 @@ export const endpoints = {
   users: '/users',
   loans: '/loans',
   auth: '/auth/login',
+  register: '/auth/register',
+  reservations: '/reservations',
 } as const

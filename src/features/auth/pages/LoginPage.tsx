@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { SessionUser } from '../../../types'
 import { apiPost } from '../../../lib/api/client'
 import { endpoints } from '../../../lib/api/endpoints'
@@ -75,6 +75,8 @@ export function LoginPage() {
         <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
           {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
+        <Link to="/register">Crear cuenta de lector</Link>
+        <Link to="/catalog">Consultar catálogo</Link>
       </form>
     </section>
   )
