@@ -1,26 +1,5 @@
-import type { Loan, UserRole } from '../../../types'
-
-const CURRENT_USER_KEY = 'biblioweb-current-user'
-
-type CurrentUserSession = {
-  email: string
-  name: string
-  role: UserRole
-}
-
-function getCurrentUser(): CurrentUserSession | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const currentUser = window.localStorage.getItem(CURRENT_USER_KEY)
-    return currentUser ? (JSON.parse(currentUser) as CurrentUserSession) : null
-  } catch (error) {
-    console.error('Error al leer el usuario actual:', error)
-    return null
-  }
-}
+import type { Loan } from '../../../types'
+import { getCurrentUser } from '../../../lib/auth/session'
 
 const loans: Loan[] = [
   { id: 1, userName: 'Elena Díaz', userEmail: 'admin@biblio.com', bookTitle: 'El Quijote', dueDate: '2026-10-12', status: 'Activo' },

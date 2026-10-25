@@ -19,7 +19,6 @@ export type User = {
   id: number
   name: string
   email: string
-  password: string
   role: UserRole
   active: boolean
 }
@@ -32,3 +31,5 @@ export type Loan = {
   dueDate: string
   status: 'Activo' | 'Vencido' | 'Devuelto'
 }
+
+export type SessionUser = Pick<User, 'name' | 'email' | 'role'>

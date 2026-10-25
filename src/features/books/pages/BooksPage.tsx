@@ -1,29 +1,8 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import type { Book, UserRole } from '../../../types'
+import type { Book } from '../../../types'
+import { getCurrentUser } from '../../../lib/auth/session'
 
 const STORAGE_KEY = 'biblioweb-books'
-const CURRENT_USER_KEY = 'biblioweb-current-user'
-
-type CurrentUserSession = {
-  email: string
-  name: string
-  role: UserRole
-}
-
-function getCurrentUser(): CurrentUserSession | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const currentUser = window.localStorage.getItem(CURRENT_USER_KEY)
-    return currentUser ? (JSON.parse(currentUser) as CurrentUserSession) : null
-  } catch (error) {
-    console.error('Error al leer el usuario actual:', error)
-    return null
-  }
-}
-
 const defaultBooks: Book[] = [
   { id: 1, title: 'El Quijote', author: 'Miguel de Cervantes', category: 'Clásico', available: true },
   { id: 2, title: 'Cien años de soledad', author: 'Gabriel García Márquez', category: 'Literatura', available: false },
@@ -59,11 +38,11 @@ function readBooksFromStorage(): Book[] {
 
     const parsedBooks = JSON.parse(savedBooks) as Book[]
 
-    if (Array.isArray(parsedBooks) && parsedBooks.length > 0) {
+    if (Array.isArray(parsedBooks)) {
       return parsedBooks
     }
 
-    return defaultBooks
+    return []
   } catch (error) {
     console.error('Error al leer libros guardados:', error)
     return defaultBooks

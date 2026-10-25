@@ -1,8 +1,8 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { User, UserRole } from '../../../types'
+import { getCurrentUser } from '../../../lib/auth/session'
 
 const STORAGE_KEY = 'biblioweb-users'
-const DEFAULT_PASSWORD = 'Biblioweb#1234'
 
 const roleLabels: Record<UserRole, string> = {
   admin: 'Administrador',
@@ -10,10 +10,9 @@ const roleLabels: Record<UserRole, string> = {
 }
 
 const defaultUsers: User[] = [
-  { id: 1, name: 'Elena Díaz', email: 'admin@biblio.com', password: DEFAULT_PASSWORD, role: 'admin', active: true },
-  { id: 2, name: 'Pedro Ruiz', email: 'lector@biblio.com', password: DEFAULT_PASSWORD, role: 'lector', active: true },
-  { id: 3, name: 'Ana García', email: 'ana@biblio.com', password: DEFAULT_PASSWORD, role: 'admin', active: false },
-  { id: 4, name: 'Administrador', email: 'Admin@biblioweb.com', password: 'Volumen#1', role: 'admin', active: true },
+  { id: 1, name: 'Elena Díaz', email: 'admin@biblio.com', role: 'admin', active: true },
+  { id: 2, name: 'Pedro Ruiz', email: 'lector@biblio.com', role: 'lector', active: true },
+  { id: 3, name: 'Ana García', email: 'ana@biblio.com', role: 'admin', active: false },
 ]
 
 type UserFormData = {
@@ -45,25 +44,17 @@ function readUsersFromStorage(): User[] {
 
     const parsedUsers = JSON.parse(savedUsers) as User[]
 
-    if (Array.isArray(parsedUsers) && parsedUsers.length > 0) {
-      const normalizedUsers = parsedUsers.map((user) => ({
-        ...user,
-        password: user.email.toLowerCase() === 'admin@biblioweb.com' ? 'Volumen#1' : DEFAULT_PASSWORD,
+    if (Array.isArray(parsedUsers)) {
+      return parsedUsers.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active: user.active,
       }))
-
-      const adminEmail = 'admin@biblioweb.com'
-      const adminIndex = normalizedUsers.findIndex((user) => user.email.toLowerCase() === adminEmail)
-
-      if (adminIndex === -1) {
-        return [...normalizedUsers, defaultUsers[3]]
-      }
-
-      return normalizedUsers.map((user, index) =>
-        index === adminIndex ? defaultUsers[3] : user,
-      )
     }
 
-    return defaultUsers
+    return []
   } catch (error) {
     console.error('Error al leer usuarios guardados:', error)
     return defaultUsers
@@ -157,7 +148,6 @@ export function UsersPage() {
                 ...user,
                 name,
                 email,
-                password: user.password ?? DEFAULT_PASSWORD,
                 role: formData.role,
                 active: formData.active,
               }
@@ -169,7 +159,6 @@ export function UsersPage() {
         id: Date.now(),
         name,
         email,
-        password: DEFAULT_PASSWORD,
         role: formData.role,
         active: formData.active,
       }
@@ -182,8 +171,19 @@ export function UsersPage() {
 
   const handleDeleteUser = (userId: number) => {
     const userToDelete = users.find((user) => user.id === userId)
+    const currentUser = getCurrentUser()
 
     if (!userToDelete) {
+      return
+    }
+
+    if (userToDelete.role === 'admin') {
+      setError('No se puede eliminar un administrador. Desactívalo en su lugar.')
+      return
+    }
+
+    if (currentUser?.email.toLowerCase() === userToDelete.email.toLowerCase()) {
+      setError('No puedes eliminar tu propio usuario.')
       return
     }
 

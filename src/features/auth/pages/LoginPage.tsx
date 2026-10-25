@@ -2,9 +2,10 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
-import type { User } from '../../../types'
-
-const DEFAULT_PASSWORD = 'Biblioweb#1234'
+import type { SessionUser } from '../../../types'
+import { apiPost } from '../../../lib/api/client'
+import { endpoints } from '../../../lib/api/endpoints'
+import { saveCurrentUser } from '../../../lib/auth/session'
 
 const loginSchema = z.object({
   email: z.string().email('Debe ingresar un correo válido'),
@@ -12,6 +13,8 @@ const loginSchema = z.object({
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
+type AuthenticatedUser = SessionUser & { active: boolean }
+type LoginResponse = AuthenticatedUser | { user: AuthenticatedUser }
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -19,56 +22,37 @@ export function LoginPage() {
     register,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = (data: LoginFormValues) => {
-    const savedUsers = JSON.parse(window.localStorage.getItem('biblioweb-users') ?? '[]') as User[]
-    const normalizedEmail = data.email.toLowerCase()
-    const adminEmail = 'admin@biblioweb.com'
-    const normalizedUsers = savedUsers.map((user) => ({
-      ...user,
-      password: user.email.toLowerCase() === adminEmail ? 'Volumen#1' : DEFAULT_PASSWORD,
-    }))
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const response = await apiPost<LoginResponse, LoginFormValues>(endpoints.auth, {
+        email: data.email.toLowerCase(),
+        password: data.password,
+      })
+      const currentUser = 'user' in response ? response.user : response
 
-    const requestedAdmin = {
-      id: 4,
-      name: 'Administrador',
-      email: 'Admin@biblioweb.com',
-      password: 'Volumen#1',
-      role: 'admin' as const,
-      active: true,
+      if (!currentUser.active) {
+        setError('email', { type: 'manual', message: 'El usuario está desactivado.' })
+        return
+      }
+
+      saveCurrentUser({
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+      })
+      navigate('/dashboard', { replace: true })
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error)
+      setError('password', {
+        type: 'manual',
+        message: 'No se pudo iniciar sesión. Verifica tus credenciales o la conexión.',
+      })
     }
-    const existingAdminIndex = normalizedUsers.findIndex((user) => user.email.toLowerCase() === adminEmail)
-
-    if (existingAdminIndex === -1 && normalizedEmail === adminEmail) {
-      normalizedUsers.push(requestedAdmin)
-      window.localStorage.setItem('biblioweb-users', JSON.stringify(normalizedUsers))
-    } else if (existingAdminIndex !== -1) {
-      normalizedUsers[existingAdminIndex] = requestedAdmin
-      window.localStorage.setItem('biblioweb-users', JSON.stringify(normalizedUsers))
-    }
-
-    const matchedUser = normalizedUsers.find(
-      (user) => user.email.toLowerCase() === data.email.toLowerCase(),
-    )
-
-    if (!matchedUser || matchedUser.password !== data.password) {
-      setError('email', { type: 'manual', message: 'Credenciales incorrectas.' })
-      setError('password', { type: 'manual', message: 'Credenciales incorrectas.' })
-      return
-    }
-
-    const currentUser = {
-      email: matchedUser.email,
-      name: matchedUser.name,
-      role: matchedUser.role,
-    }
-
-    window.localStorage.setItem('biblioweb-current-user', JSON.stringify(currentUser))
-    navigate('/dashboard')
   }
 
   return (
@@ -88,8 +72,8 @@ export function LoginPage() {
           {errors.password && <span className="error-text">{errors.password.message}</span>}
         </label>
 
-        <button type="submit" className="primary-button full-width">
-          Iniciar sesión
+        <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
+          {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
       </form>
     </section>

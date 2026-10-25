@@ -1,27 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import type { UserRole } from '../../types'
-
-type CurrentUserSession = {
-  email: string
-  name: string
-  role: UserRole
-}
-
-const CURRENT_USER_KEY = 'biblioweb-current-user'
-
-function getCurrentUser(): CurrentUserSession | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    const currentUser = window.localStorage.getItem(CURRENT_USER_KEY)
-    return currentUser ? (JSON.parse(currentUser) as CurrentUserSession) : null
-  } catch (error) {
-    console.error('Error al leer el usuario actual:', error)
-    return null
-  }
-}
+import { clearCurrentUser, getCurrentUser } from '../../lib/auth/session'
 
 const navigation = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -36,7 +14,7 @@ export function MainLayout() {
   const isAdmin = currentUser?.role === 'admin'
 
   const handleLogout = () => {
-    window.localStorage.removeItem(CURRENT_USER_KEY)
+    clearCurrentUser()
     navigate('/login', { replace: true })
   }
 
