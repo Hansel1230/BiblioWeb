@@ -289,12 +289,25 @@ h2 {
 }
 
 .table-panel {
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 640px;
+}
+
+caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 th,
@@ -370,6 +383,25 @@ th {
   font-size: 0.8rem;
 }
 
+.error-page {
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  min-height: 100vh;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 28px;
+  text-align: center;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--info);
+  outline-offset: 3px;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -378,6 +410,16 @@ th {
   .sidebar {
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .nav-link {
+    white-space: nowrap;
   }
 
   .content-panel {

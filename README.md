@@ -184,6 +184,23 @@ El backend debe validar siempre disponibilidad, límites de reserva, sanciones,
 roles y duplicidad de reservas. El frontend solo refleja y previene acciones
 cuando cuenta con la información necesaria.
 
+## Alcance del Sprint 4
+
+El Sprint 4 incorpora controles de calidad y preparación para entrega:
+
+- `AppErrorBoundary` evita pantallas blancas ante errores de renderizado y
+  ofrece una acción de recuperación.
+- Los formularios exponen errores mediante `aria-invalid`,
+  `aria-describedby` y `role="alert"`.
+- Las tablas tienen caption accesible y permiten desplazamiento horizontal en
+  pantallas pequeñas.
+- Los elementos interactivos muestran un foco visible para navegación con
+  teclado.
+- Vitest y Testing Library cubren la sesión y el comportamiento del
+  `AppErrorBoundary`.
+- GitHub Actions ejecuta lint, pruebas y build en cada pull request hacia
+  `main` y en pushes a `main`.
+
 Rutas principales:
 
 | Ruta | Acceso |
@@ -275,6 +292,28 @@ El build y el lint se ejecutan con:
 npm run build
 npm run lint
 ```
+
+Ejecutar las pruebas:
+
+```bash
+npm test
+```
+
+Ejecutar las pruebas en modo watch:
+
+```bash
+npm run test:watch
+```
+
+Generar cobertura:
+
+```bash
+npm run test:coverage
+```
+
+La integración continua se define en `.github/workflows/ci.yml` y requiere
+que `npm ci`, `npm run lint`, `npm test` y `npm run build` finalicen
+correctamente.
 
 La autenticación requiere la API configurada. El frontend no almacena
 contraseñas ni utiliza credenciales demo.

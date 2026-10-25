@@ -41,10 +41,10 @@ export function RegisterPage() {
       <form className="auth-card" onSubmit={handleSubmit(onSubmit)}>
         <p className="eyebrow">Registro</p>
         <h1>Crear cuenta de lector</h1>
-        <label>Nombre<input {...register('name')} />{errors.name && <span className="error-text">{errors.name.message}</span>}</label>
-        <label>Correo electrónico<input {...register('email')} type="email" />{errors.email && <span className="error-text">{errors.email.message}</span>}</label>
-        <label>Contraseña<input {...register('password')} type="password" />{errors.password && <span className="error-text">{errors.password.message}</span>}</label>
-        <label>Confirmar contraseña<input {...register('confirmPassword')} type="password" />{errors.confirmPassword && <span className="error-text">{errors.confirmPassword.message}</span>}</label>
+        <label>Nombre<input id="register-name" {...register('name')} aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'register-name-error' : undefined} />{errors.name && <span id="register-name-error" className="error-text" role="alert">{errors.name.message}</span>}</label>
+        <label>Correo electrónico<input id="register-email" {...register('email')} type="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'register-email-error' : undefined} />{errors.email && <span id="register-email-error" className="error-text" role="alert">{errors.email.message}</span>}</label>
+        <label>Contraseña<input id="register-password" {...register('password')} type="password" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'register-password-error' : undefined} />{errors.password && <span id="register-password-error" className="error-text" role="alert">{errors.password.message}</span>}</label>
+        <label>Confirmar contraseña<input id="register-confirm-password" {...register('confirmPassword')} type="password" aria-invalid={Boolean(errors.confirmPassword)} aria-describedby={errors.confirmPassword ? 'register-confirm-password-error' : undefined} />{errors.confirmPassword && <span id="register-confirm-password-error" className="error-text" role="alert">{errors.confirmPassword.message}</span>}</label>
         <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
           {isSubmitting ? 'Registrando…' : 'Registrarme'}
         </button>

@@ -62,14 +62,14 @@ export function LoginPage() {
         <h1>BiblioWeb</h1>
         <label>
           Correo electrónico
-          <input {...register('email')} type="email" placeholder="usuario@biblioweb.com" />
-          {errors.email && <span className="error-text">{errors.email.message}</span>}
+          <input id="login-email" {...register('email')} type="email" placeholder="usuario@biblioweb.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'login-email-error' : undefined} />
+          {errors.email && <span id="login-email-error" className="error-text" role="alert">{errors.email.message}</span>}
         </label>
 
         <label>
           Contraseña
-          <input {...register('password')} type="password" placeholder="••••••••" />
-          {errors.password && <span className="error-text">{errors.password.message}</span>}
+          <input id="login-password" {...register('password')} type="password" placeholder="••••••••" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'login-password-error' : undefined} />
+          {errors.password && <span id="login-password-error" className="error-text" role="alert">{errors.password.message}</span>}
         </label>
 
         <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
