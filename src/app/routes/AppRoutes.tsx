@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { LoginPage } from '../../features/auth/pages/LoginPage'
+import { RegisterPage } from '../../features/auth/pages/RegisterPage'
+import { CatalogPage } from '../../features/books/pages/CatalogPage'
 import { BooksPage } from '../../features/books/pages/BooksPage'
 import { DashboardPage } from '../../features/dashboard/pages/DashboardPage'
 import { LoansPage } from '../../features/loans/pages/LoansPage'
@@ -36,10 +38,12 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/catalog" element={<CatalogPage />} />
       <Route path="/403" element={<p> No tienes permisos para acceder a esta sección.</p>} />
 
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/catalog" replace />} />
         <Route path="/dashboard" element={<RequireRole allowedRoles={['admin', 'lector']}><DashboardPage /></RequireRole>} />
         <Route path="/books" element={<RequireRole allowedRoles={['admin', 'lector']}><BooksPage /></RequireRole>} />
         <Route path="/users" element={<RequireRole allowedRoles={['admin']}><UsersPage /></RequireRole>} />

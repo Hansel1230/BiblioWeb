@@ -118,6 +118,7 @@ src/
     books/                   # Catálogo, búsqueda y disponibilidad
     users/                   # Gestión de usuarios
     loans/                   # Préstamos y devoluciones
+    reservations/            # Reservas de libros
     reservations/            # Reservas en línea
     dashboard/               # Indicadores y panel administrativo
   components/                # Componentes reutilizables de interfaz
@@ -138,13 +139,100 @@ src/
 Las páginas no deben contener lógica de negocio compleja. Las llamadas a la
 API deben centralizarse en `src/lib/api` y en los servicios de cada feature.
 
+### Estado actual de la integración
+
+El frontend utiliza TanStack Query para consultar e invalidar datos remotos.
+Las páginas de dashboard y préstamos consumen servicios por feature:
+
+```text
+src/
+  features/
+    dashboard/
+      hooks/useDashboard.ts
+      services/dashboard-service.ts
+    loans/
+      hooks/useLoans.ts
+      services/loans-service.ts
+  lib/
+    api/
+      client.ts
+      config.ts
+      endpoints.ts
+```
+
+El cliente HTTP centralizado incluye credenciales de sesión, métodos `GET`,
+`POST`, `PATCH` y `DELETE`, y errores con código HTTP para que la interfaz
+pueda tratar de forma distinta los casos de autenticación, permisos y
+recursos no encontrados.
+
+Mientras se completa el contrato de la API .NET, dashboard y préstamos pueden
+usar un adaptador mock explícito. El modo mock no debe utilizarse en
+producción y no sustituye la autorización ni la persistencia del backend.
+
+## Alcance del Sprint 3
+
+El Sprint 3 incorpora los flujos principales del dominio:
+
+- `/catalog` es público y permite consultar libros sin autenticarse.
+- `/register` permite registrar lectores mediante `POST /auth/register`.
+- Los lectores pueden solicitar reservas mediante `POST /reservations`.
+- El modelo contempla ISBN, ejemplares, estados de ejemplar, reservas,
+  sanciones futuras y préstamos relacionados con entidades.
+- Las consultas de catálogo y reservas utilizan TanStack Query.
+
+El backend debe validar siempre disponibilidad, límites de reserva, sanciones,
+roles y duplicidad de reservas. El frontend solo refleja y previene acciones
+cuando cuenta con la información necesaria.
+
+Rutas principales:
+
+| Ruta | Acceso |
+| --- | --- |
+| `/catalog` | Público |
+| `/register` | Público |
+| `/login` | Público |
+| `/dashboard` | Administrador o lector |
+| `/books` | Administrador o lector |
+| `/loans` | Administrador o lector |
+| `/users` | Administrador |
+
+Contrato esperado para el registro:
+
+```json
+{
+  "name": "Nombre del lector",
+  "email": "lector@biblioweb.com",
+  "password": "contraseña segura"
+}
+```
+
+Contrato esperado para una reserva:
+
+```json
+{
+  "bookId": 1
+}
+```
+
 ## Integración con la API .NET
 
 Configura la URL base mediante una variable de entorno:
 
 ```env
 VITE_API_BASE_URL=https://localhost:7000/api
+VITE_DATA_SOURCE=api
 ```
+
+Valores permitidos para `VITE_DATA_SOURCE`:
+
+- `api`: utiliza los endpoints configurados de la API .NET.
+- `mock`: utiliza datos locales únicamente durante el desarrollo del frontend.
+  Actualmente aplica a dashboard y préstamos. Nunca debe utilizarse en
+  producción.
+
+Si `VITE_DATA_SOURCE` no se define, se utiliza `api`. Si el modo API no tiene
+`VITE_API_BASE_URL`, la aplicación muestra un error explícito en lugar de
+conectarse a un dominio ficticio.
 
 No se deben incluir tokens, contraseñas ni credenciales reales en el repositorio.
 El contrato de datos del frontend debe mantenerse alineado con los DTOs que
@@ -180,6 +268,16 @@ Ejecutar el análisis estático:
 ```bash
 npm run lint
 ```
+
+El build y el lint se ejecutan con:
+
+```bash
+npm run build
+npm run lint
+```
+
+La autenticación requiere la API configurada. El frontend no almacena
+contraseñas ni utiliza credenciales demo.
 
 ## Documentación del proyecto
 
