@@ -1,38 +1,63 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
+import { apiBaseUrl } from './config'
 
-export async function apiGet<T>(endpoint: string): Promise<T> {
-  if (!API_BASE_URL) {
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(
+    message: string,
+    status: number,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  if (!apiBaseUrl) {
     throw new Error('La API no está configurada. Define VITE_API_BASE_URL.')
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${apiBaseUrl}${endpoint}`, {
     credentials: 'include',
+    ...options,
   })
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.statusText}`)
+    throw new ApiError(`La API respondió con ${response.status}.`, response.status)
+  }
+
+  if (response.status === 204) {
+    return undefined as T
   }
 
   return response.json() as Promise<T>
 }
 
-export async function apiPost<TResponse, TBody>(endpoint: string, body: TBody): Promise<TResponse> {
-  if (!API_BASE_URL) {
-    throw new Error('La API no está configurada. Define VITE_API_BASE_URL.')
-  }
+export function apiGet<T>(endpoint: string): Promise<T> {
+  return apiRequest<T>(endpoint)
+}
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+export function apiPost<TResponse, TBody>(endpoint: string, body: TBody): Promise<TResponse> {
+  return apiRequest<TResponse>(endpoint, {
     method: 'POST',
-    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   })
+}
 
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.statusText}`)
-  }
+export function apiPatch<TResponse, TBody>(endpoint: string, body: TBody): Promise<TResponse> {
+  return apiRequest<TResponse>(endpoint, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+}
 
-  return response.json() as Promise<TResponse>
+export function apiDelete(endpoint: string): Promise<void> {
+  return apiRequest<void>(endpoint, { method: 'DELETE' })
 }
