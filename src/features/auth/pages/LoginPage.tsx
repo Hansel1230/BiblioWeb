@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useNavigate } from 'react-router-dom'
+import type { SessionUser } from '../../../types'
+import { apiPost } from '../../../lib/api/client'
+import { endpoints } from '../../../lib/api/endpoints'
+import { saveCurrentUser } from '../../../lib/auth/session'
 
 const loginSchema = z.object({
   email: z.string().email('Debe ingresar un correo válido'),
@@ -8,18 +13,46 @@ const loginSchema = z.object({
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
+type AuthenticatedUser = SessionUser & { active: boolean }
+type LoginResponse = AuthenticatedUser | { user: AuthenticatedUser }
 
 export function LoginPage() {
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = (data: LoginFormValues) => {
-    console.log('Login payload', data)
+  const onSubmit = async (data: LoginFormValues) => {
+    try {
+      const response = await apiPost<LoginResponse, LoginFormValues>(endpoints.auth, {
+        email: data.email.toLowerCase(),
+        password: data.password,
+      })
+      const currentUser = 'user' in response ? response.user : response
+
+      if (!currentUser.active) {
+        setError('email', { type: 'manual', message: 'El usuario está desactivado.' })
+        return
+      }
+
+      saveCurrentUser({
+        name: currentUser.name,
+        email: currentUser.email,
+        role: currentUser.role,
+      })
+      navigate('/dashboard', { replace: true })
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error)
+      setError('password', {
+        type: 'manual',
+        message: 'No se pudo iniciar sesión. Verifica tus credenciales o la conexión.',
+      })
+    }
   }
 
   return (
@@ -39,8 +72,8 @@ export function LoginPage() {
           {errors.password && <span className="error-text">{errors.password.message}</span>}
         </label>
 
-        <button type="submit" className="primary-button full-width">
-          Iniciar sesión
+        <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
+          {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
       </form>
     </section>

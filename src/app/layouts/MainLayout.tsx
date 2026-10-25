@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { clearCurrentUser, getCurrentUser } from '../../lib/auth/session'
 
 const navigation = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -8,6 +9,15 @@ const navigation = [
 ]
 
 export function MainLayout() {
+  const navigate = useNavigate()
+  const currentUser = getCurrentUser()
+  const isAdmin = currentUser?.role === 'admin'
+
+  const handleLogout = () => {
+    clearCurrentUser()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -20,16 +30,22 @@ export function MainLayout() {
         </div>
 
         <nav className="nav-menu">
-          {navigation.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {navigation
+            .filter((item) => item.to !== '/users' || isAdmin)
+            .map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              >
+                {item.label}
+              </NavLink>
+            ))}
         </nav>
+
+        <button type="button" className="logout-button" onClick={handleLogout}>
+          Cerrar sesión
+        </button>
       </aside>
 
       <main className="content-panel">

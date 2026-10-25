@@ -1,10 +1,20 @@
-const loans = [
-  { id: 1, userName: 'Elena Díaz', bookTitle: 'El Quijote', dueDate: '2026-10-12', status: 'Activo' },
-  { id: 2, userName: 'Pedro Ruiz', bookTitle: 'La Metamorfosis', dueDate: '2026-10-09', status: 'Vencido' },
-  { id: 3, userName: 'María López', bookTitle: 'Cien años de soledad', dueDate: '2026-10-15', status: 'Devuelto' },
+import type { Loan } from '../../../types'
+import { getCurrentUser } from '../../../lib/auth/session'
+
+const loans: Loan[] = [
+  { id: 1, userName: 'Elena Díaz', userEmail: 'admin@biblio.com', bookTitle: 'El Quijote', dueDate: '2026-10-12', status: 'Activo' },
+  { id: 2, userName: 'Pedro Ruiz', userEmail: 'lector@biblio.com', bookTitle: 'La Metamorfosis', dueDate: '2026-10-09', status: 'Vencido' },
+  { id: 3, userName: 'María López', userEmail: 'maria@biblio.com', bookTitle: 'Cien años de soledad', dueDate: '2026-10-15', status: 'Devuelto' },
 ] as const
 
 export function LoansPage() {
+  const currentUser = getCurrentUser()
+  const isReader = currentUser?.role === 'lector'
+  const visibleLoans =
+    isReader && currentUser
+      ? loans.filter((loan) => loan.userEmail.toLowerCase() === currentUser.email.toLowerCase())
+      : (loans as Loan[])
+
   return (
     <section className="page-shell">
       <div className="page-header">
@@ -12,7 +22,7 @@ export function LoansPage() {
           <p className="eyebrow">Gestión</p>
           <h1>Préstamos</h1>
         </div>
-        <button className="primary-button">Nuevo préstamo</button>
+        {!isReader && <button className="primary-button">Nuevo préstamo</button>}
       </div>
 
       <div className="table-panel">
@@ -26,26 +36,32 @@ export function LoansPage() {
             </tr>
           </thead>
           <tbody>
-            {loans.map((loan) => (
-              <tr key={loan.id}>
-                <td>{loan.userName}</td>
-                <td>{loan.bookTitle}</td>
-                <td>{loan.dueDate}</td>
-                <td>
-                  <span
-                    className={
-                      loan.status === 'Activo'
-                        ? 'status ok'
-                        : loan.status === 'Vencido'
-                          ? 'status warning'
-                          : 'status info'
-                    }
-                  >
-                    {loan.status}
-                  </span>
-                </td>
+            {visibleLoans.length === 0 ? (
+              <tr>
+                <td colSpan={4}>{isReader ? 'No tienes préstamos asignados.' : 'No hay préstamos registrados.'}</td>
               </tr>
-            ))}
+            ) : (
+              visibleLoans.map((loan) => (
+                <tr key={loan.id}>
+                  <td>{loan.userName}</td>
+                  <td>{loan.bookTitle}</td>
+                  <td>{loan.dueDate}</td>
+                  <td>
+                    <span
+                      className={
+                        loan.status === 'Activo'
+                          ? 'status ok'
+                          : loan.status === 'Vencido'
+                            ? 'status warning'
+                            : 'status info'
+                      }
+                    >
+                      {loan.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
