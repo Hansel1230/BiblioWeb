@@ -1,11 +1,9 @@
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate } from 'react-router-dom'
-import type { SessionUser } from '../../../types'
-import { apiPost } from '../../../lib/api/client'
-import { endpoints } from '../../../lib/api/endpoints'
+import { Link, useNavigate } from 'react-router-dom'
 import { saveCurrentUser } from '../../../lib/auth/session'
+import { loginUser } from '../services/auth-service'
 
 const loginSchema = z.object({
   email: z.string().email('Debe ingresar un correo válido'),
@@ -13,9 +11,6 @@ const loginSchema = z.object({
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
-type AuthenticatedUser = SessionUser & { active: boolean }
-type LoginResponse = AuthenticatedUser | { user: AuthenticatedUser }
-
 export function LoginPage() {
   const navigate = useNavigate()
   const {
@@ -29,11 +24,10 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const response = await apiPost<LoginResponse, LoginFormValues>(endpoints.auth, {
+      const currentUser = await loginUser({
         email: data.email.toLowerCase(),
         password: data.password,
       })
-      const currentUser = 'user' in response ? response.user : response
 
       if (!currentUser.active) {
         setError('email', { type: 'manual', message: 'El usuario está desactivado.' })
@@ -62,19 +56,23 @@ export function LoginPage() {
         <h1>BiblioWeb</h1>
         <label>
           Correo electrónico
-          <input {...register('email')} type="email" placeholder="usuario@biblioweb.com" />
-          {errors.email && <span className="error-text">{errors.email.message}</span>}
+          <input id="login-email" {...register('email')} type="email" placeholder="usuario@biblioweb.com" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'login-email-error' : undefined} />
+          {errors.email && <span id="login-email-error" className="error-text" role="alert">{errors.email.message}</span>}
         </label>
 
         <label>
           Contraseña
-          <input {...register('password')} type="password" placeholder="••••••••" />
-          {errors.password && <span className="error-text">{errors.password.message}</span>}
+          <input id="login-password" {...register('password')} type="password" placeholder="••••••••" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'login-password-error' : undefined} />
+          {errors.password && <span id="login-password-error" className="error-text" role="alert">{errors.password.message}</span>}
         </label>
 
         <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
           {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
+        <div className="auth-links">
+          <Link to="/register">Crear cuenta de lector</Link>
+          <Link to="/catalog">Consultar catálogo</Link>
+        </div>
       </form>
     </section>
   )
