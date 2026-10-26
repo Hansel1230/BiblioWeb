@@ -399,6 +399,16 @@ th {
   margin-bottom: 24px;
 }
 
+.auth-links {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.auth-links a {
+  display: block;
+}
+
 .auth-card label {
   display: grid;
   gap: 8px;

@@ -69,8 +69,10 @@ export function LoginPage() {
         <button type="submit" className="primary-button full-width" disabled={isSubmitting}>
           {isSubmitting ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </button>
-        <Link to="/register">Crear cuenta de lector</Link>
-        <Link to="/catalog">Consultar catálogo</Link>
+        <div className="auth-links">
+          <Link to="/register">Crear cuenta de lector</Link>
+          <Link to="/catalog">Consultar catálogo</Link>
+        </div>
       </form>
     </section>
   )
