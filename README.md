@@ -247,6 +247,23 @@ Valores permitidos para `VITE_DATA_SOURCE`:
   Actualmente aplica a dashboard y préstamos. Nunca debe utilizarse en
   producción.
 
+El modo `mock` completo también permite validar sin API el login, registro,
+catálogo, reservas, libros y usuarios. Los datos se guardan en `localStorage`
+con claves separadas por dominio y se inicializan con datos de demostración
+cuando no existen. Las contraseñas no se persisten: el login mock solo valida
+el formato de la contraseña y la existencia de un usuario activo.
+
+La rama `feat/frontend-todo-improvements` incluye además:
+
+- Catálogo con búsqueda por título, autor, categoría e ISBN.
+- Filtro de disponibilidad y estado vacío para resultados sin coincidencias.
+- Pantalla `/reservations` para consultar y cancelar reservas.
+- Layout público separado del área administrativa.
+- Préstamos con selectores, búsqueda, filtros, devolución y renovación en modo
+  mock.
+- Estados visuales reutilizables para carga, error, vacío y éxito.
+- Pantallas completas de acceso denegado y página no encontrada.
+
 Si `VITE_DATA_SOURCE` no se define, se utiliza `api`. Si el modo API no tiene
 `VITE_API_BASE_URL`, la aplicación muestra un error explícito en lugar de
 conectarse a un dominio ficticio.

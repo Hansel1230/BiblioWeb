@@ -1,19 +1,17 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { User, UserRole } from '../../../types'
 import { getCurrentUser } from '../../../lib/auth/session'
+import { MOCK_KEYS, defaultMockUsers } from '../../../mocks/data'
+import { UserTable } from '../components/UserTable'
 
-const STORAGE_KEY = 'biblioweb-users'
+const STORAGE_KEY = MOCK_KEYS.users
 
 const roleLabels: Record<UserRole, string> = {
   admin: 'Administrador',
   lector: 'Lector',
 }
 
-const defaultUsers: User[] = [
-  { id: 1, name: 'Elena Díaz', email: 'admin@biblio.com', role: 'admin', active: true },
-  { id: 2, name: 'Pedro Ruiz', email: 'lector@biblio.com', role: 'lector', active: true },
-  { id: 3, name: 'Ana García', email: 'ana@biblio.com', role: 'admin', active: false },
-]
+const defaultUsers = defaultMockUsers
 
 type UserFormData = {
   name: string
@@ -269,53 +267,7 @@ export function UsersPage() {
         </form>
       )}
 
-      <div className="table-panel">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan={5}>No hay usuarios registrados.</td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{roleLabels[user.role]}</td>
-                  <td>
-                    <span className={user.active ? 'status ok' : 'status warning'}>
-                      {user.active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="table-button secondary-button" onClick={() => openEditForm(user)}>
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className="table-button danger-button"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <UserTable users={users} roleLabels={roleLabels} onEdit={openEditForm} onDelete={handleDeleteUser} />
     </section>
   )
 }

@@ -2,10 +2,8 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
-import type { SessionUser } from '../../../types'
-import { apiPost } from '../../../lib/api/client'
-import { endpoints } from '../../../lib/api/endpoints'
 import { saveCurrentUser } from '../../../lib/auth/session'
+import { loginUser } from '../services/auth-service'
 
 const loginSchema = z.object({
   email: z.string().email('Debe ingresar un correo válido'),
@@ -13,9 +11,6 @@ const loginSchema = z.object({
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
-type AuthenticatedUser = SessionUser & { active: boolean }
-type LoginResponse = AuthenticatedUser | { user: AuthenticatedUser }
-
 export function LoginPage() {
   const navigate = useNavigate()
   const {
@@ -29,11 +24,10 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const response = await apiPost<LoginResponse, LoginFormValues>(endpoints.auth, {
+      const currentUser = await loginUser({
         email: data.email.toLowerCase(),
         password: data.password,
       })
-      const currentUser = 'user' in response ? response.user : response
 
       if (!currentUser.active) {
         setError('email', { type: 'manual', message: 'El usuario está desactivado.' })

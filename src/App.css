@@ -77,6 +77,43 @@
   padding: 28px;
 }
 
+.public-shell {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.public-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--sidebar);
+}
+
+.brand-link { color: var(--text); font-size: 1.2rem; }
+.public-nav { display: flex; flex-wrap: wrap; gap: 16px; }
+.public-nav a { color: var(--muted); }
+.public-nav a.active, .public-nav a:hover { color: var(--text); }
+.public-content { padding: 28px; }
+
+.filter-bar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.filter-bar label { color: var(--muted); font-size: 0.85rem; }
+.filter-bar input, .filter-bar select { min-width: 160px; }
+.success-message { color: #86efac; }
+.empty-state { color: var(--muted); }
+.error-state { display: grid; gap: 8px; }
+.status-page { display: grid; place-content: center; gap: 16px; min-height: 70vh; text-align: center; }
+.status-page .primary-button { justify-self: center; }
+
 .page-shell,
 .auth-shell {
   max-width: 1200px;
@@ -421,6 +458,11 @@ select:focus-visible {
   .nav-link {
     white-space: nowrap;
   }
+
+  .public-header { align-items: flex-start; flex-direction: column; padding: 16px 20px; }
+  .public-content { padding: 20px; }
+  .filter-bar { align-items: stretch; flex-direction: column; }
+  .filter-bar input, .filter-bar select, .filter-bar button { width: 100%; }
 
   .content-panel {
     padding: 20px;

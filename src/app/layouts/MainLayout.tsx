@@ -6,6 +6,7 @@ const navigation = [
   { to: '/books', label: 'Libros' },
   { to: '/users', label: 'Usuarios' },
   { to: '/loans', label: 'Préstamos' },
+  { to: '/reservations', label: 'Mis reservas' },
 ]
 
 export function MainLayout() {
@@ -31,7 +32,7 @@ export function MainLayout() {
 
         <nav className="nav-menu">
           {navigation
-            .filter((item) => item.to !== '/users' || isAdmin)
+            .filter((item) => (item.to !== '/users' || isAdmin) && (item.to !== '/reservations' || currentUser?.role === 'lector'))
             .map((item) => (
               <NavLink
                 key={item.to}

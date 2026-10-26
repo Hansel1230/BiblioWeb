@@ -2,8 +2,7 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
-import { apiPost } from '../../../lib/api/client'
-import { endpoints } from '../../../lib/api/endpoints'
+import { registerUser } from '../services/auth-service'
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Ingresa tu nombre'),
@@ -24,7 +23,7 @@ export function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await apiPost<void, Omit<RegisterFormValues, 'confirmPassword'>>(endpoints.register, {
+      await registerUser({
         name: data.name,
         password: data.password,
         email: data.email.toLowerCase(),

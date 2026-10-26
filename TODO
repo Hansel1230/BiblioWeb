@@ -1,0 +1,193 @@
+# TODO - Mejoras frontend BiblioWeb
+
+## 1. Modo mock completo
+
+- [x] Crear carpeta `src/mocks`
+- [x] Crear datos mock de libros
+- [x] Crear datos mock de usuarios
+- [x] Crear datos mock de préstamos
+- [x] Crear datos mock de reservas
+- [x] Crear datos mock del dashboard
+- [x] Implementar login mock
+- [x] Implementar registro mock
+- [x] Implementar catálogo mock
+- [x] Implementar reservas mock
+- [x] Implementar dashboard mock
+- [x] Implementar préstamos mock
+- [x] Implementar CRUD de libros mock
+- [x] Implementar CRUD de usuarios mock
+- [x] Persistir cambios mock en `localStorage`
+- [x] Unificar el modo mock en todos los servicios
+- [x] Validar que la aplicación funcione sin API
+
+## 2. Búsqueda y filtros del catálogo
+
+- [x] Agregar búsqueda por título
+- [x] Agregar búsqueda por autor
+- [x] Agregar filtro por categoría
+- [x] Agregar filtro por ISBN
+- [x] Agregar filtro por disponibilidad
+- [x] Agregar botón para limpiar filtros
+- [x] Mostrar mensaje cuando no existan resultados
+- [x] Mantener filtros en estado local
+- [x] Validar filtros en pantallas móviles
+- [ ] Crear pruebas para búsqueda y filtros
+
+## 3. Experiencia completa de reservas
+
+- [x] Agregar confirmación antes de reservar
+- [x] Mostrar estado de reserva por libro
+- [x] Mostrar mensaje de éxito
+- [x] Agregar `aria-live` a los mensajes de reserva
+- [x] Impedir reservar dos veces el mismo libro
+- [x] Mostrar botón “Ya reservado” cuando corresponda
+- [x] Mostrar estados pendiente, aprobada, cancelada y expirada
+- [x] Manejar estado de reserva en modo mock
+- [ ] Crear pruebas de creación de reservas
+
+## 4. Pantalla “Mis reservas”
+
+- [x] Crear ruta `/reservations`
+- [x] Crear pantalla de mis reservas
+- [x] Mostrar libro reservado
+- [x] Mostrar fecha de creación
+- [x] Mostrar estado de la reserva
+- [x] Agregar cancelación de reserva
+- [x] Agregar confirmación de cancelación
+- [x] Mostrar estado vacío
+- [x] Mostrar loading
+- [x] Mostrar error
+- [x] Agregar acceso desde la navegación del lector
+- [ ] Crear pruebas de la pantalla
+
+## 5. Layout público
+
+- [x] Crear `PublicLayout`
+- [x] Separar `PublicLayout` de `MainLayout`
+- [x] Agregar navegación pública
+- [x] Agregar enlace al catálogo
+- [x] Agregar enlace al login
+- [x] Agregar enlace al registro
+- [x] Mostrar navegación distinta para usuarios autenticados
+- [x] Validar navegación pública en móvil
+- [x] Actualizar las rutas para utilizar el layout correcto
+
+## 6. Préstamos
+
+- [x] Crear datos mock de usuarios para préstamos
+- [x] Crear datos mock de libros disponibles
+- [x] Reemplazar inputs de IDs por select de usuarios
+- [x] Reemplazar inputs de IDs por select de libros
+- [x] Agregar selección de ejemplar
+- [x] Agregar validación de disponibilidad
+- [x] Agregar acción de devolución
+- [x] Agregar confirmación de devolución
+- [x] Agregar acción de renovación
+- [x] Agregar filtros de préstamos
+- [x] Agregar búsqueda de préstamos
+- [x] Mostrar mensaje de operación exitosa
+- [x] Mostrar estado de error
+- [ ] Crear pruebas de préstamos
+
+## 7. Refactorización de libros y usuarios
+
+- [ ] Extraer `BookForm`
+- [x] Extraer `BookTable`
+- [ ] Extraer `UserForm`
+- [x] Extraer `UserTable`
+- [x] Crear hooks de libros
+- [x] Crear hooks de usuarios
+- [x] Crear servicios mock de libros
+- [x] Crear servicios mock de usuarios
+- [ ] Centralizar validaciones
+- [ ] Centralizar mensajes de error
+- [ ] Reducir el tamaño de `BooksPage`
+- [ ] Reducir el tamaño de `UsersPage`
+- [ ] Crear pruebas de CRUD de libros
+- [ ] Crear pruebas de CRUD de usuarios
+
+## 8. Estados visuales reutilizables
+
+- [x] Crear componente `LoadingState`
+- [x] Crear componente `ErrorState`
+- [x] Crear componente `EmptyState`
+- [x] Crear componente `SuccessMessage`
+- [x] Crear componente `AlertMessage`
+- [x] Agregar botón de reintento
+- [x] Agregar `role="alert"` donde corresponda
+- [x] Agregar `aria-live` a mensajes dinámicos
+- [ ] Uniformar estados de todas las pantallas
+- [x] Usar los componentes en catálogo
+- [x] Usar los componentes en reservas
+- [x] Usar los componentes en préstamos
+- [ ] Usar los componentes en dashboard
+- [ ] Usar los componentes en libros
+- [ ] Usar los componentes en usuarios
+
+## 9. Accesibilidad de formularios
+
+- [ ] Usar `htmlFor` en todos los labels
+- [ ] Verificar IDs únicos
+- [ ] Agregar `aria-invalid`
+- [ ] Agregar `aria-describedby`
+- [ ] Asociar cada error con su input
+- [ ] Agregar mensajes de éxito accesibles
+- [ ] Validar navegación completa con teclado
+- [ ] Validar orden de foco
+- [ ] Revisar contraste de colores
+- [ ] Revisar lectores de pantalla
+- [ ] Agregar pruebas de accesibilidad básicas
+
+## 10. Pantallas 403 y 404
+
+- [x] Crear pantalla visual 403
+- [x] Agregar descripción de acceso denegado
+- [x] Agregar botón para volver
+- [x] Agregar enlace al catálogo
+- [x] Agregar enlace al dashboard cuando corresponda
+- [x] Crear pantalla visual 404
+- [x] Agregar mensaje de página no encontrada
+- [x] Agregar botón para volver
+- [x] Agregar enlace al catálogo
+- [x] Validar diseño responsive
+- [ ] Crear pruebas de navegación
+
+## 11. Pruebas frontend
+
+- [ ] Probar login
+- [ ] Probar registro
+- [ ] Probar catálogo
+- [ ] Probar búsqueda
+- [ ] Probar filtros
+- [ ] Probar creación de reservas
+- [ ] Probar cancelación de reservas
+- [ ] Probar préstamos
+- [ ] Probar devoluciones
+- [ ] Probar renovaciones
+- [ ] Probar CRUD de libros
+- [ ] Probar CRUD de usuarios
+- [ ] Probar estados loading
+- [ ] Probar estados de error
+- [ ] Probar estados vacíos
+- [ ] Probar navegación pública
+- [ ] Probar responsive cuando sea posible
+- [ ] Mantener cobertura mínima acordada
+
+## 12. Validación final
+
+- [x] Ejecutar `npm run lint`
+- [x] Ejecutar `npm test`
+- [x] Ejecutar `npm run test:coverage`
+- [x] Ejecutar `npm run build`
+- [x] Probar la aplicación sin API
+- [ ] Probar desktop
+- [ ] Probar tablet
+- [ ] Probar móvil
+- [ ] Revisar navegación completa
+- [x] Revisar README
+- [x] Revisar rutas
+- [ ] Revisar mensajes de error
+- [ ] Revisar accesibilidad
+- [ ] Verificar que no existan datos hardcodeados no intencionales
+- [ ] Crear commit
+- [ ] Crear Pull Request

@@ -1,13 +1,10 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import type { Book } from '../../../types'
 import { getCurrentUser } from '../../../lib/auth/session'
+import { MOCK_KEYS, defaultMockBooks } from '../../../mocks/data'
+import { BookTable } from '../components/BookTable'
 
-const STORAGE_KEY = 'biblioweb-books'
-const defaultBooks: Book[] = [
-  { id: 1, title: 'El Quijote', author: 'Miguel de Cervantes', category: 'Clásico', available: true },
-  { id: 2, title: 'Cien años de soledad', author: 'Gabriel García Márquez', category: 'Literatura', available: false },
-  { id: 3, title: 'La Metamorfosis', author: 'Franz Kafka', category: 'Ficción', available: true },
-]
+const STORAGE_KEY = MOCK_KEYS.books
 
 type BookFormData = {
   title: string
@@ -25,15 +22,15 @@ const emptyForm: BookFormData = {
 
 function readBooksFromStorage(): Book[] {
   if (typeof window === 'undefined') {
-    return defaultBooks
+    return defaultMockBooks
   }
 
   try {
     const savedBooks = window.localStorage.getItem(STORAGE_KEY)
 
     if (!savedBooks) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultBooks))
-      return defaultBooks
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultMockBooks))
+      return defaultMockBooks
     }
 
     const parsedBooks = JSON.parse(savedBooks) as Book[]
@@ -45,7 +42,7 @@ function readBooksFromStorage(): Book[] {
     return []
   } catch (error) {
     console.error('Error al leer libros guardados:', error)
-    return defaultBooks
+    return defaultMockBooks
   }
 }
 
@@ -247,55 +244,7 @@ export function BooksPage() {
         </form>
       )}
 
-      <div className="table-panel">
-        <table>
-          <thead>
-            <tr>
-              <th>Título</th>
-              <th>Autor</th>
-              <th>Categoría</th>
-              <th>Disponibilidad</th>
-              {!isReader && <th>Acciones</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {books.length === 0 ? (
-              <tr>
-                <td colSpan={5}>No hay libros registrados.</td>
-              </tr>
-            ) : (
-              books.map((book) => (
-                <tr key={book.id}>
-                  <td>{book.title}</td>
-                  <td>{book.author}</td>
-                  <td>{book.category}</td>
-                  <td>
-                    <span className={book.available ? 'status ok' : 'status warning'}>
-                      {book.available ? 'Disponible' : 'Prestado'}
-                    </span>
-                  </td>
-                  {!isReader && (
-                    <td>
-                      <div className="table-actions">
-                        <button type="button" className="table-button secondary-button" onClick={() => openEditForm(book)}>
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className="table-button danger-button"
-                          onClick={() => handleDeleteBook(book.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <BookTable books={books} isReader={isReader} onEdit={openEditForm} onDelete={handleDeleteBook} />
     </section>
   )
 }
