@@ -1,0 +1,561 @@
+===============================================================================
+BIBLIOWEB - REGISTRO DE DEUDA TECNICA DEL FRONTEND
+===============================================================================
+
+Fecha de auditoria : 2026-10-25
+Rama               : feat/frontend-todo-improvements
+Ultimo commit      : b612768
+Alcance            : Frontend React unicamente. La API .NET no esta en este
+                     repositorio, por lo que los contratos se evaluan como
+                     supuestos y riesgos, no como defectos confirmados del
+                     backend.
+
+Verificacion ejecutada:
+  - npm run lint ................ OK (sin errores)
+  - npm test .................... OK (3 archivos, 5 pruebas)
+  - npm run build ............... OK
+  - Bundle de produccion ........ 440.77 kB (133.57 kB gzip)
+  - Cobertura reportada ......... 81.39% (metrica enganosa, ver seccion 5.8)
+
+Este documento deja constancia de las fortalezas, los defectos confirmados,
+las deudas de arquitectura y el plan de reimplementacion del frontend.
+
+Tabla de contenido
+  1. Resumen ejecutivo
+  2. Estado y estructura actual
+  3. Puntos fuertes
+  4. Deudas criticas (P0)
+  5. Deudas altas (P1)
+  6. Deudas medias y menores (P2)
+  7. Inventario de bugs confirmados
+  8. Plan de reimplementacion por fases
+  9. Contrato pendiente con el equipo .NET
+ 10. Anexos: metricas y desalineacion documental
+
+
+===============================================================================
+1. RESUMEN EJECUTIVO
+===============================================================================
+
+El proyecto es una SPA React 19 + TypeScript + Vite con arquitectura
+feature-first. Tiene una base estructural solida, un modo mock que permite
+demostrar todos los flujos sin API y controles de calidad basicos (lint, tests,
+build y CI). El lint, las pruebas y el build pasan.
+
+Sin embargo, la capa de datos esta a medio migrar. Libros y usuarios todavia
+leen y escriben localStorage directamente, sin pasar por la API ni por TanStack
+Query. La sesion se gestiona solo en el cliente, sin hidratacion desde el
+servidor ni limpieza de cache al cerrar sesion. El modelo de dominio mezcla
+libro con ejemplar y estados en espanol con estados en ingles. El cliente HTTP
+no interpreta los errores de una API .NET real.
+
+Conclusion: no conviene seguir agregando pantallas sobre la capa de datos
+actual. Primero deben resolverse la fuente unica de datos, la autenticacion y
+el modelo de dominio; despues, las pantallas administrativas y la calidad.
+
+
+===============================================================================
+2. ESTADO Y ESTRUCTURA ACTUAL
+===============================================================================
+
+Stack:
+  - React 19 + TypeScript 6 + Vite 8
+  - React Router 7 (modo declarativo)
+  - TanStack Query 5
+  - React Hook Form + Zod
+  - Zustand instalado, sin uso actual
+  - Vitest + Testing Library
+  - Oxlint
+  - CSS global con variables de diseno
+
+Organizacion real:
+
+  src/
+    app/
+      components/       AppErrorBoundary
+      layouts/          MainLayout, PublicLayout
+      pages/            AccessDeniedPage, NotFoundPage
+      routes/           AppRoutes
+    features/
+      auth/             LoginPage, RegisterPage, auth-service
+      books/            CatalogPage, BooksPage, BookTable, useBooks,
+                        books-service
+      dashboard/        DashboardPage, useDashboard, dashboard-service
+      loans/            LoansPage, useLoans, loans-service
+      reservations/     ReservationsPage, useReservations,
+                        reservations-service
+      users/            UsersPage, UserTable, useUsers, users-service
+    components/ui/      AlertMessage, EmptyState, ErrorState, LoadingState,
+                        SuccessMessage
+    lib/api/            client.ts, config.ts, endpoints.ts
+    lib/auth/           session.ts
+    mocks/              data.ts, storage.ts
+    types/              index.ts
+    assets/             imagenes de la plantilla Vite sin uso
+
+Funcionalidad presente:
+  - Catalogo publico con busqueda por titulo, autor, categoria e ISBN.
+  - Filtro por disponibilidad y estado vacio.
+  - Registro e inicio de sesion con validacion Zod.
+  - Reservas: crear, listar y cancelar.
+  - Prestamos: listar, crear, devolver y renovar.
+  - Dashboard con estadisticas, actividad y alertas (mock estatico).
+  - CRUD local de libros y usuarios.
+  - Layout publico separado del area autenticada.
+  - Estados visuales reutilizables y pantallas 403/404.
+
+Desalineacion con el README:
+  El README describe carpetas que no existen (app/providers, components/forms,
+  components/tables, components/charts, hooks, lib/utils, styles, tests) y
+  afirma "CSS modular por componentes" cuando existe un unico App.css de 480
+  lineas. Tambien duplica "reservations" en el arbol de carpetas.
+
+
+===============================================================================
+3. PUNTOS FUERTES
+===============================================================================
+
+3.1. Estructura feature-first clara.
+     Cada dominio tiene pages, hooks, services y componentes. Es facil ubicar
+     donde vive cada flujo y donde debe crecer.
+
+3.2. Stack moderno y coherente.
+     TanStack Query para estado remoto, RHF + Zod para formularios, React
+     Router 7 y Vitest son elecciones adecuadas para el alcance.
+
+3.3. Modo mock bien pensado para desbloquear el desarrollo.
+     VITE_DATA_SOURCE permite alternar entre API y mock. Los datos se separan
+     por dominio en localStorage y se inicializan con datos de demostracion.
+
+3.4. Sesion defensiva.
+     lib/auth/session.ts valida la forma del usuario antes de confiar en
+     localStorage, limpia datos corruptos y no persiste contrasenas.
+
+3.5. Accesibilidad por encima del promedio academico.
+     AppErrorBoundary, aria-invalid, aria-describedby, role="alert",
+     aria-live, foco visible, caption en tablas y scroll horizontal.
+
+3.6. UI responsive y consistente.
+     Variables CSS de diseno, sidebar que colapsa, tablas con min-width y
+     overflow-x, formularios en grid adaptable.
+
+3.7. Calidad automatizada.
+     CI en GitHub Actions con npm ci, lint, test y build. Oxlint rapido y
+     TypeScript con noUnusedLocals/noUnusedParameters.
+
+3.8. Documentacion de alcance.
+     README y TODO describen requisitos, reglas de negocio, rutas y contratos
+     esperados; sirven como base para alinear al equipo.
+
+
+===============================================================================
+4. DEUDAS CRITICAS (P0) - BLOQUEAN LA INTEGRACION CON LA API .NET
+===============================================================================
+
+4.1. DOBLE FUENTE DE VERDAD: LIBROS Y USUARIOS IGNORAN LA API
+-------------------------------------------------------------------------------
+Evidencia:
+  - src/features/books/pages/BooksPage.tsx importa MOCK_KEYS y defaultMockBooks
+    y lee/escribe localStorage directamente.
+  - src/features/users/pages/UsersPage.tsx hace lo mismo.
+  - Ninguna de las dos paginas usa dataSource, servicios ni TanStack Query
+    para mutaciones.
+
+Impacto:
+  - En modo api, /catalog consume la API pero /books muestra datos mock
+    locales; los catalogos divergen.
+  - El CRUD de libros y usuarios nunca llega al backend.
+  - Los cambios se pierden al cambiar de navegador o limpiar storage.
+  - La logica de storage esta duplicada en dos paginas en vez de reutilizar
+    readMockValue.
+
+Accion requerida:
+  - Migrar ambas paginas a servicios + hooks de query/mutacion.
+  - Eliminar todo acceso directo a localStorage desde componentes.
+  - Un unico adaptador decide api vs mock.
+
+4.2. AUTENTICACION Y SESION SOLO EN EL CLIENTE
+-------------------------------------------------------------------------------
+Evidencia:
+  - SessionUser no incluye id; LoansPage filtra prestamos por email.
+  - El rol vive en localStorage y RequireRole confia en el.
+  - No existe GET /auth/me ni revalidacion de sesion.
+  - MainLayout.handleLogout solo limpia localStorage y navega.
+  - El QueryClient es privado en App.tsx (no se puede limpiar al salir).
+  - No hay manejo global de 401.
+  - RequireRole no conserva el destino original (state.from).
+  - La sesion no es reactiva ni se sincroniza entre pestanas.
+
+Impacto:
+  - Un usuario desactivado o con rol cambiado sigue operando en la UI.
+  - Al cerrar sesion quedan datos del usuario anterior en cache hasta 30 s
+    (staleTime) o hasta el refetch.
+  - Una cookie expirada produce pantallas de error en vez de redirigir al
+    login.
+  - El filtrado por email es fragil ante mayusculas o cambios de correo.
+  - El rol es manipulable desde DevTools (el backend debe ser la autoridad,
+    pero la UI debe revalidar).
+
+Accion requerida:
+  - AuthProvider + useAuth con user, login, logout e isLoading.
+  - Hidratar con /auth/me al arrancar.
+  - Incluir id en SessionUser.
+  - Logout contra el backend + queryClient.clear().
+  - Interceptor 401 -> limpiar sesion y redirigir con destino.
+  - Guards con Outlet, no wrappers repetidos por ruta.
+
+4.3. MODELO DE DOMINIO INCONSISTENTE
+-------------------------------------------------------------------------------
+Evidencia:
+  - Book.available: boolean convive con copies y con BookCopy, que no se usa
+    en ninguna pantalla.
+  - CreateLoanInput usa bookId, mientras Loan usa bookCopyId. El mock asigna
+    bookCopyId = input.bookId, confundiendo libro con ejemplar.
+  - Loan.status esta tipado en espanol ('Activo' | 'Vencido' | 'Devuelto');
+    Reservation.status esta en ingles ('pending' | 'approved' | ...).
+  - Reservation no incluye titulo ni datos de ejemplar.
+  - Penalty existe pero no tiene pantalla ni flujo (RF-07).
+  - DashboardStat recibe valores ya formateados ("184", "+12%") en vez de
+    numeros.
+  - No hay validacion en tiempo de ejecucion de las respuestas.
+
+Impacto:
+  - No se puede representar la regla RN-04 a nivel de ejemplar.
+  - El contrato con .NET sera inestable y requerira mapeos improvisados.
+  - Se muestran enums crudos al usuario (ReservationsPage).
+  - Las cifras del dashboard dependen de formato de presentacion del backend.
+
+Accion requerida:
+  - Separar Book (metadatos) de BookCopy (inventario y estado).
+  - Loan con userId + copyId + fechas + enum estable en ingles.
+  - Mapa de etiquetas de estado en la capa UI.
+  - Dashboard con numeros; formato en el frontend.
+  - Validar DTOs con Zod o generarlos desde OpenAPI.
+
+4.4. CLIENTE HTTP INSUFICIENTE PARA UNA API .NET REAL
+-------------------------------------------------------------------------------
+Evidencia (src/lib/api/client.ts):
+  - Descarta el cuerpo de error: "La API respondio con 500".
+  - No interpreta ProblemDetails (title, detail, errors).
+  - No distingue red, timeout, 401, 403, 404 ni validacion.
+  - No soporta AbortSignal ni timeout.
+  - Siempre parsea JSON; un 200 con cuerpo vacio fallaria.
+  - No normaliza la URL base (barra final -> //books).
+  - No existe apiPut.
+  - Endpoints inline fuera de endpoints.ts:
+    /loans/{id}/return y /reservations/{id}/cancel.
+  - endpoints.auth = '/auth/login' rompe la convencion del resto.
+  - App.tsx detecta el status con 'status' in error en vez de instanceOf
+    ApiError.
+
+Impacto:
+  - Los errores de validacion del backend no se pueden mostrar por campo.
+  - Los timeouts y caidas de red se confunden con errores de negocio.
+  - El contrato de endpoints queda disperso.
+
+Accion requerida:
+  - Reescribir http.ts con timeout, abort, parseo seguro y ProblemDetails.
+  - Normalizar base URL y centralizar todos los endpoints.
+  - apiGet/apiPost/apiPut/apiPatch/apiDelete consistentes.
+  - Tipar y mapear errores a mensajes de UI.
+
+4.5. TYPESCRIPT SIN MODO STRICT
+-------------------------------------------------------------------------------
+Evidencia:
+  - tsconfig.app.json y tsconfig.node.json no declaran "strict": true.
+  - No hay noUncheckedIndexedAccess ni exactOptionalPropertyTypes.
+
+Impacto:
+  - Gran parte del valor de TypeScript se pierde: null/undefined no se
+    controlan, y patrones como currentUser.role ?? 'lector' ocultan supuestos.
+
+Accion requerida:
+  - Activar strict y las opciones adicionales.
+  - Corregir los errores resultantes antes de seguir creciendo.
+
+4.6. EL MOCK VIAJA AL BUNDLE DE PRODUCCION
+-------------------------------------------------------------------------------
+Evidencia:
+  - Los servicios importan mocks/data y mocks/storage de forma estatica.
+
+Impacto:
+  - El modo mock se incluye en el build de produccion.
+  - Si se despliega con VITE_DATA_SOURCE=mock, el login acepta cualquier
+    contrasena de un usuario activo.
+
+Accion requerida:
+  - Bloquear el mock cuando import.meta.env.PROD (fallar build o lanzar error).
+  - Cargar mocks con import() dinamico para que no entren al bundle.
+  - Documentar que el modo mock es solo de desarrollo.
+
+
+===============================================================================
+5. DEUDAS ALTAS (P1)
+===============================================================================
+
+5.1. BUGS FUNCIONALES CONFIRMADOS
+  a) CatalogPage.tsx tiene el import de React al final del archivo, despues
+     del componente. Funciona por hoisting, pero es un error evidente y puede
+     romper el orden de imports del lint.
+  b) CatalogPage ejecuta useReservations() siempre, incluso para invitados.
+     En modo API esto dispara un 401 en el catalogo publico. Debe usar
+     enabled: Boolean(currentUser && role === 'lector').
+  c) CatalogPage deshabilita todos los botones de reserva cuando una mutacion
+     esta pendiente (isPending global en vez de por fila).
+  d) CatalogPage mantiene estado duplicado de reservas (reservedBookIds local
+     + query). Si la query falla, la UI puede mostrar un estado incorrecto.
+  e) LoansPage muestra el mensaje de exito inmediatamente despues de mutate,
+     aunque la peticion falle.
+  f) LoansPage permite que un lector registre devoluciones; segun requisitos,
+     esa accion corresponde al bibliotecario.
+  g) LoansPage no valida que la fecha limite sea futura.
+  h) ReservationsPage muestra el enum crudo (pending, approved) al usuario.
+  i) UsersPage genera IDs con Date.now() mientras los servicios usan max + 1.
+  j) El registro no invalida la query de usuarios; el nuevo usuario no aparece
+     hasta el refetch.
+  k) readMockValue escribe en storage como efecto secundario de una lectura.
+  l) DashboardPage usa <p> para loading/error en vez de los componentes
+     compartidos; el mock es estatico y no refleja el estado real.
+  m) Si VITE_API_BASE_URL termina en barra, se generan URLs con //.
+  n) No se invalida la query de dashboard al cancelar una reserva.
+
+5.2. FALTA DE PAGINACION Y DE ESTADO EN LA URL
+  - Catalogo, libros, usuarios y prestamos cargan todos los registros.
+  - Los filtros viven en useState local: no se comparten, no se guardan y se
+    pierden al navegar.
+  - Accion: filtros y paginacion en query string; debounce en busqueda;
+    paginacion de servidor.
+
+5.3. PANTALLAS QUE NO CUMPLEN EL ALCANCE
+  - RF-03: no hay detalle de libro ni estado por ejemplar.
+  - RF-06: el administrador no puede aprobar/cancelar reservas ni gestionar
+    entregas pendientes.
+  - RF-07: no existe pantalla de sanciones/multas, pese a Penalty.
+  - CU-04/CU-05: no hay flujo guiado de aprobacion de reserva y entrega.
+  - El dashboard del lector muestra actividad global de otros usuarios; si la
+    API devuelve lo mismo para ambos roles, hay fuga de informacion.
+
+5.4. RUTAS Y RENDIMIENTO
+  - Todas las paginas se importan de forma eager; no hay lazy ni Suspense.
+  - No hay errorElement por ruta; solo el boundary global.
+  - /403 esta dentro de PublicLayout y muestra el header publico a un usuario
+    autenticado.
+  - No hay rutas para detalle de libro, reservas administrativas ni sanciones.
+  - El bundle incluye pantallas administrativas que un invitado nunca usa.
+  - No hay vite.server.proxy para desarrollo; con cookies cross-origin habra
+    que resolver CORS y certificados HTTPS de localhost.
+
+5.5. FORMULARIOS ADMINISTRATIVOS DEBILES
+  - BooksPage (250 lineas) y UsersPage (273 lineas) son monolitos.
+  - Validacion manual, sin Zod; mensajes genericos.
+  - No mapean errores de validacion del backend a campos.
+  - No hay BookForm ni UserForm extraidos.
+  - No hay actualizacion optimista ni invalidacion fina.
+  - No hay proteccion contra doble envio mas alla de isPending.
+
+5.6. EXPERIENCIA Y ACCESIBILIDAD
+  - window.confirm para reservar, cancelar y eliminar: bloqueante, no
+    accesible y no testeable. Reemplazar por dialogo accesible.
+  - Tabla de prestamos sin caption; README afirma que todas las tablas lo
+    tienen.
+  - Botones "Editar"/"Eliminar" repetidos sin contexto para lectores de
+    pantalla.
+  - No hay skip link ni aria-busy en tablas.
+  - Estados de reserva en ingles y sin etiquetas traducidas.
+  - No hay prefers-reduced-motion.
+
+5.7. CSS Y SISTEMA DE UI
+  - Un unico App.css de 480 lineas con clases globales; el README promete CSS
+    modular.
+  - Reglas duplicadas (line-height repetido; .auth-card input vs .field input;
+    .form-panel select fuera de contexto).
+  - Solo tema oscuro; colores hardcodeados en varios lugares.
+  - Zustand esta instalado pero no se usa.
+  - Imagenes de la plantilla Vite (hero.png, react.svg, vite.svg) sin uso.
+
+5.8. PRUEBAS INSUFICIENTES Y COBERTURA ENGANOSA
+  - Solo 5 pruebas: sesion, storage mock y error boundary.
+  - Cero pruebas de paginas, hooks, servicios, cliente HTTP y mutaciones.
+  - El 81.39% de cobertura solo mide los 3 archivos importados por los tests;
+    paginas, hooks y servicios no aparecen en el reporte.
+  - No hay umbral minimo de cobertura; el CI pasa aunque la cobertura real sea
+    casi nula.
+  - No hay MSW ni contrato simulado de la API.
+  - No hay pruebas E2E.
+
+5.9. CALIDAD DE CODIGO Y MANTENIBILIDAD
+  - Imports relativos profundos (../../../) sin alias @/.
+  - No hay Prettier ni regla de orden de imports.
+  - console.error disperso en paginas y servicios.
+  - No hay manejo global de errores de mutacion ni sistema de notificaciones.
+  - No hay tipos por feature; todo vive en types/index.ts.
+  - No hay generacion de tipos desde OpenAPI.
+
+5.10. DOCUMENTACION DESALINEADA
+  - README: carpetas inexistentes, CSS modular falso, reservations duplicada.
+  - README: "seleccion de ejemplar" marcada como hecha, pero solo se elige
+    libro.
+  - README: atribuye al login mock una validacion de contrasena que el
+    servicio no realiza (solo la valida el formulario).
+  - TODO: marca "Crear hooks de libros" cuando solo existe el hook de lectura.
+  - TODO y README no reflejan el estado real de la capa de datos.
+
+
+===============================================================================
+6. DEUDAS MEDIAS Y MENORES (P2)
+===============================================================================
+
+6.1. Tipos de fecha como string sin marca de formato; conviene un tipo ISO o
+     Date en el mapeo.
+6.2. No hay endpoint de salud ni comprobacion de configuracion al arrancar;
+     el error de API no configurada aparece hasta la primera peticion.
+6.3. No hay manejo de multiples pestanas (evento storage) para sesion.
+6.4. No hay internacionalizacion; los textos estan hardcodeados en espanol.
+     Es aceptable para el alcance, pero los enums deben centralizarse.
+6.5. No hay estilos de impresion (util en biblioteca para reportes).
+6.6. No hay favicon/titulo definitivos: el titulo es "biblioweb" en minuscula
+     y falta meta description.
+6.7. No hay estados de error especificos por codigo (404 vs vacio vs 500).
+6.8. No hay reintento manual uniforme en todas las pantallas.
+6.9. No hay pruebas de regresion visual ni de responsive automatizadas.
+6.10. No hay metricas de rendimiento (Lighthouse) ni presupuesto de bundle.
+
+
+===============================================================================
+7. INVENTARIO DE BUGS CONFIRMADOS
+===============================================================================
+
+ID    Archivo                              Problema
+----  -----------------------------------  ------------------------------------
+B-01  books/pages/CatalogPage.tsx          Import de React al final del archivo
+B-02  books/pages/CatalogPage.tsx          useReservations sin enabled (401)
+B-03  books/pages/CatalogPage.tsx          isPending global deshabilita filas
+B-04  books/pages/CatalogPage.tsx          Estado duplicado de reservas
+B-05  loans/pages/LoansPage.tsx            Exito mostrado antes de confirmar
+B-06  loans/pages/LoansPage.tsx            Lector puede registrar devolucion
+B-07  loans/pages/LoansPage.tsx            Fecha limite sin validar
+B-08  reservations/pages/ReservationsPage  Enum crudo mostrado al usuario
+B-09  users/pages/UsersPage.tsx            IDs con Date.now()
+B-10  auth/services/auth-service.ts        Registro no invalida usuarios
+B-11  mocks/storage.ts                     Lectura con escritura lateral
+B-12  dashboard/pages/DashboardPage.tsx    No usa estados compartidos
+B-13  lib/api/client.ts                    No interpreta ProblemDetails
+B-14  lib/api/client.ts                    No soporta timeout/abort
+B-15  lib/api/client.ts                    JSON obligatorio en toda respuesta
+B-16  lib/api/config.ts                    URL base sin normalizar
+B-17  App.tsx                              Deteccion de status por 'in' hack
+B-18  app/routes/AppRoutes.tsx             /403 dentro del layout publico
+B-19  app/layouts/MainLayout.tsx           Logout no limpia cache ni API
+B-20  lib/auth/session.ts                  SessionUser sin id
+B-21  mocks + servicios                    Build de produccion incluye mock
+B-22  tsconfig.app.json                    strict desactivado
+B-23  README.md                            Documentacion desalineada
+B-24  TODO                                 Tareas marcadas sin implementar
+
+
+===============================================================================
+8. PLAN DE REIMPLEMENTACION POR FASES
+===============================================================================
+
+FASE 0 - Correcciones inmediatas (1-2 dias)
+  1. Activar strict en TypeScript y corregir errores.
+  2. Mover el import de CatalogPage al inicio.
+  3. Agregar enabled a useReservations.
+  4. Quitar la accion de devolucion al rol lector.
+  5. Corregir mensajes de exito prematuros.
+  6. Bloquear el modo mock en produccion.
+
+FASE 1 - Capa de datos y sesion (base para .NET)
+  7. Reescribir lib/api/http.ts con timeout, abort, ProblemDetails y 401.
+  8. Centralizar endpoints y query keys.
+  9. Implementar AuthProvider + useAuth + /auth/me + logout real.
+  10. Limpiar QueryClient al cerrar sesion.
+  11. Migrar BooksPage y UsersPage a servicios y hooks.
+  12. Validar respuestas con Zod o generarlas desde OpenAPI.
+
+FASE 2 - Dominio y pantallas
+  13. Separar Book, BookCopy, Loan, Reservation y Penalty.
+  14. Crear detalle de libro con estado por ejemplar.
+  15. Agregar reservas administrativas (aprobar/cancelar/entrega).
+  16. Agregar pantalla de sanciones.
+  17. Filtros y paginacion en la URL.
+  18. Rutas lazy, errorElement y separacion de dashboards por rol.
+  19. Formularios administrativos con RHF + Zod.
+  20. Dialogos accesibles en lugar de window.confirm.
+
+FASE 3 - Calidad y entrega
+  21. MSW y pruebas de servicios, hooks y paginas.
+  22. Cobertura real con include de src y umbral minimo.
+  23. CSS Modules, tema claro/oscuro y sistema de componentes.
+  24. Pruebas E2E de CU-01 a CU-05.
+  25. Corregir README y TODO.
+  26. Presupuesto de bundle y lazy loading verificado.
+
+
+===============================================================================
+9. CONTRATO PENDIENTE CON EL EQUIPO .NET
+===============================================================================
+
+Antes de seguir agregando pantallas, acordar y documentar:
+
+  9.1. Autenticacion
+       - Cookie httpOnly vs JWT.
+       - Endpoint de logout y de refresh.
+       - Manejo de CSRF/antiforgery si se usan cookies.
+       - Forma de /auth/me y expiracion de sesion.
+
+  9.2. Errores
+       - ProblemDetails: title, detail, errors.
+       - Codigos estables para errores de negocio y validacion.
+
+  9.3. Listados
+       - Paginacion: page, pageSize, total, items.
+       - Ordenamiento y filtros por query string.
+
+  9.4. Roles y visibilidad
+       - Dashboard admin vs lector.
+       - Reservas del usuario vs todas las reservas.
+       - Permisos de devolucion y renovacion.
+
+  9.5. Dominio
+       - Reserva y prestamo por libro o por ejemplar.
+       - Estados como enums estables en ingles.
+       - Fechas en ISO 8601.
+       - Reglas RN-01 a RN-04 aplicadas en servidor.
+
+  9.6. Contratos
+       - Publicar OpenAPI.
+       - Generar tipos y cliente para evitar DTOs escritos a mano.
+
+
+===============================================================================
+10. ANEXOS
+===============================================================================
+
+10.1. Metricas verificadas
+      - Lint: sin errores.
+      - Pruebas: 5/5 correctas.
+      - Build: correcto.
+      - JS de produccion: 440.77 kB (133.57 kB gzip).
+      - CSS de produccion: 6.97 kB (2.06 kB gzip).
+
+10.2. Cobertura real
+      El reporte de Vitest solo incluye archivos importados por las pruebas:
+      AppErrorBoundary, session y mocks/storage. No incluye paginas, hooks ni
+      servicios, por lo que el 81.39% no representa la cobertura del producto.
+
+10.3. Desalineacion documental
+      - Carpetas del README que no existen.
+      - CSS modular prometido, CSS global real.
+      - "Seleccion de ejemplar" marcada como hecha.
+      - Duplicado de reservations en el arbol.
+      - TODO con tareas marcadas que no estan implementadas.
+
+10.4. Prioridad recomendada
+      P0: 4.1 a 4.6.
+      P1: 5.1 a 5.10.
+      P2: 6.1 a 6.10.
+
+===============================================================================
+FIN DEL DOCUMENTO
+===============================================================================

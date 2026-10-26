@@ -1,5 +1,10 @@
 # TODO - Mejoras frontend BiblioWeb
 
+> **Auditoria tecnica del 2026-10-25:** el detalle completo de cada deuda,
+> evidencia y accion recomendada esta en `DEUDAS_TECNICAS.txt`. Las tareas
+> nuevas y priorizadas se agregan a partir de la seccion 13. Las secciones
+> 1 a 12 se conservan como historial del trabajo previo.
+
 ## 1. Modo mock completo
 
 - [x] Crear carpeta `src/mocks`
@@ -17,7 +22,7 @@
 - [x] Implementar CRUD de libros mock
 - [x] Implementar CRUD de usuarios mock
 - [x] Persistir cambios mock en `localStorage`
-- [x] Unificar el modo mock en todos los servicios
+- [ ] Unificar el modo mock en todos los servicios *(reabierta: libros y usuarios aun leen/escriben localStorage directamente)*
 - [x] Validar que la aplicación funcione sin API
 
 ## 2. Búsqueda y filtros del catálogo
@@ -78,7 +83,7 @@
 - [x] Crear datos mock de libros disponibles
 - [x] Reemplazar inputs de IDs por select de usuarios
 - [x] Reemplazar inputs de IDs por select de libros
-- [x] Agregar selección de ejemplar
+- [ ] Agregar selección de ejemplar *(reabierta: el formulario solo selecciona libro, no ejemplar)*
 - [x] Agregar validación de disponibilidad
 - [x] Agregar acción de devolución
 - [x] Agregar confirmación de devolución
@@ -191,3 +196,224 @@
 - [ ] Verificar que no existan datos hardcodeados no intencionales
 - [ ] Crear commit
 - [ ] Crear Pull Request
+
+---
+
+## 13. Auditoria tecnica 2026-10-25 - Deuda priorizada
+
+> Referencia completa: `DEUDAS_TECNICAS.txt`.
+> Prioridad: **P0** bloquea la integracion con la API .NET, **P1** debe
+> resolverse antes de la entrega, **P2** es mejora continua.
+
+### 13.1. P0 - Fuente unica de datos
+
+- [ ] Crear una capa `api/` por feature (`books`, `users`, `loans`, `reservations`, `dashboard`, `auth`) con funciones tipadas.
+- [ ] Migrar `BooksPage` a servicios y hooks; eliminar `readBooksFromStorage`.
+- [ ] Migrar `UsersPage` a servicios y hooks; eliminar `readUsersFromStorage`.
+- [ ] Eliminar todo acceso directo a `localStorage` desde paginas y componentes.
+- [ ] Reutilizar `readMockValue`/`writeMockValue` en lugar de duplicar la lectura de storage.
+- [ ] Invalidar la query de usuarios despues del registro.
+- [ ] Unificar la seleccion `api`/`mock` en un unico adaptador; ninguna pagina debe decidir el origen.
+- [ ] Mover los mocks a imports dinamicos para que no entren al bundle de produccion.
+- [ ] Bloquear `VITE_DATA_SOURCE=mock` cuando `import.meta.env.PROD` (fallar build o lanzar error).
+- [ ] Verificar que `/books`, `/users`, `/catalog`, `/loans` y `/reservations` usen la misma fuente de datos.
+
+### 13.2. P0 - Autenticacion y sesion
+
+- [ ] Crear `AuthProvider` + `useAuth()` (`user`, `login`, `logout`, `isLoading`).
+- [ ] Hidratar la sesion con `GET /auth/me` al arrancar la aplicacion.
+- [ ] Agregar `id` a `SessionUser` y dejar de filtrar prestamos por email.
+- [ ] Implementar logout contra el backend (`POST /auth/logout`).
+- [ ] Exponer el `QueryClient` fuera de `App.tsx` y ejecutar `queryClient.clear()` al cerrar sesion.
+- [ ] Manejar `401` de forma global: limpiar sesion y redirigir a `/login?from=...`.
+- [ ] Convertir los guards a `Outlet` (`RequireAuth`, `RequireRole`) y conservar el destino original.
+- [ ] Hacer la sesion reactiva y sincronizarla entre pestanas (`storage` event).
+- [ ] No confiar en el rol de `localStorage`; revalidarlo con el servidor.
+- [ ] Definir y manejar CSRF/antiforgery si la API usa cookies.
+- [ ] Definir refresh de token si la API usa JWT.
+
+### 13.3. P0 - Modelo de dominio y contrato
+
+- [ ] Separar `Book` (metadatos) de `BookCopy` (inventario, codigo, estado, ubicacion).
+- [ ] Usar `BookCopy` en la UI y mostrar el estado por ejemplar (RF-03).
+- [ ] Corregir `CreateLoanInput`/`Loan`: no confundir `bookId` con `bookCopyId`.
+- [ ] Definir estados de dominio como enums estables en ingles y etiquetas en espanol en la capa UI.
+- [ ] Revisar el modelo de `Reservation` (libro/ejemplar, titulo, expiracion).
+- [ ] Implementar el flujo de `Penalty` (RF-07).
+- [ ] Cambiar `DashboardStat` a valores numericos; formatear en el frontend.
+- [ ] Validar respuestas de la API con Zod o generarlas desde OpenAPI.
+- [ ] Mover tipos a cada feature y dejar en `types` solo lo compartido.
+- [ ] Normalizar fechas a ISO 8601.
+- [ ] Mapear errores de validacion del backend a campos concretos.
+
+### 13.4. P0 - Cliente HTTP
+
+- [ ] Reescribir `lib/api/client.ts` como `http.ts` con timeout y `AbortSignal`.
+- [ ] Interpretar `ProblemDetails` (`title`, `detail`, `errors`) y conservar el cuerpo del error.
+- [ ] Distinguir error de red, timeout, 401, 403, 404 y validacion.
+- [ ] Normalizar la URL base (evitar `//books` por barra final).
+- [ ] Soportar respuestas `204` y cuerpos vacios sin intentar `json()`.
+- [ ] Agregar `apiPut` y unificar la firma de `apiGet/apiPost/apiPatch/apiDelete`.
+- [ ] Centralizar todos los endpoints, incluidos `return` y `cancel`.
+- [ ] Renombrar `endpoints.auth` a `endpoints.login` para mantener la convencion.
+- [ ] Reemplazar `'status' in error` por `error instanceof ApiError`.
+- [ ] Validar la configuracion al arrancar y fallar con un mensaje claro.
+- [ ] Pasar `signal` de TanStack Query a `fetch` para cancelar peticiones.
+- [ ] Enviar cabeceras `Accept` y `Content-Type` de forma consistente.
+
+### 13.5. P0 - TypeScript y mantenibilidad base
+
+- [ ] Activar `"strict": true` en `tsconfig.app.json` y `tsconfig.node.json`.
+- [ ] Activar `noUncheckedIndexedAccess` y `exactOptionalPropertyTypes`.
+- [ ] Corregir todos los errores que aparezcan al activar strict.
+- [ ] Configurar alias `@/` en Vite y TypeScript y migrar imports profundos.
+- [ ] Agregar script `typecheck` separado del build.
+
+### 13.6. P1 - Bugs confirmados (B-01 a B-24)
+
+- [ ] B-01 Mover el import de React de `CatalogPage` al inicio del archivo.
+- [ ] B-02 Agregar `enabled: Boolean(currentUser && role === 'lector')` a `useReservations`.
+- [ ] B-03 Usar estado de mutacion por fila, no global, al reservar.
+- [ ] B-04 Eliminar el estado duplicado `reservedBookIds` y usar solo la query.
+- [ ] B-05 Mostrar exito/error solo en `onSuccess`/`onError` de la mutacion.
+- [ ] B-06 Restringir la devolucion al rol bibliotecario.
+- [ ] B-07 Validar que la fecha limite del prestamo sea futura.
+- [ ] B-08 Traducir los estados de reserva antes de mostrarlos.
+- [ ] B-09 Dejar de generar IDs con `Date.now()`; usar IDs del backend.
+- [ ] B-10 Invalidar usuarios despues del registro.
+- [ ] B-11 Quitar la escritura lateral de `readMockValue`.
+- [ ] B-12 Usar `LoadingState`/`ErrorState`/`EmptyState` en el dashboard.
+- [ ] B-13 a B-16 Resolver el manejo de errores y la normalizacion del cliente HTTP.
+- [ ] B-17 Detectar errores con `instanceof ApiError`.
+- [ ] B-18 Sacar `/403` del layout publico.
+- [ ] B-19 Implementar logout real y limpieza de cache.
+- [ ] B-20 Incluir `id` en la sesion.
+- [ ] B-21 Excluir los mocks del build de produccion.
+- [ ] B-22 Activar strict.
+- [ ] B-23 Corregir el README.
+- [ ] B-24 Sincronizar este TODO con el estado real.
+
+### 13.7. P1 - Catalogo
+
+- [ ] Mover filtros y paginacion a la URL con `useSearchParams`.
+- [ ] Agregar debounce a la busqueda.
+- [ ] Evaluar busqueda y filtros del lado del servidor cuando crezca el catalogo.
+- [ ] Crear ruta `/catalog/:id` con detalle del libro y sus ejemplares.
+- [ ] Implementar query keys por parametros (`bookKeys.list(filters)`).
+- [ ] Reemplazar `window.confirm` por un dialogo accesible.
+- [ ] Mostrar errores especificos por codigo (404, 500, red).
+- [ ] No consultar reservas si el visitante es invitado o administrador.
+- [ ] Crear pruebas de busqueda, filtros, paginacion y reserva.
+
+### 13.8. P1 - Administracion de libros y usuarios
+
+- [ ] Extraer `BookForm` y `UserForm` con RHF + Zod.
+- [ ] Crear hooks de mutacion para libros y usuarios.
+- [ ] Implementar actualizacion optimista e invalidacion fina.
+- [ ] Mapear errores de validacion del backend a cada campo.
+- [ ] Agregar paginacion, busqueda y filtros de servidor.
+- [ ] Reforzar restricciones de rol en la UI (solo admin crea/edita/elimina).
+- [ ] Reducir `BooksPage` y `UsersPage` a componentes de orquestacion.
+- [ ] Eliminar por completo el storage local en estos flujos.
+- [ ] Crear pruebas de CRUD de libros y usuarios.
+
+### 13.9. P1 - Prestamos y reservas
+
+- [ ] Devolucion y renovacion solo para roles autorizados.
+- [ ] Validar transiciones de estado de prestamos y reservas.
+- [ ] Validar fechas y limites de renovacion.
+- [ ] Implementar aprobacion, cancelacion y entrega de reservas para bibliotecario (RF-06).
+- [ ] Implementar sanciones y multas (RF-07).
+- [ ] Invalidar dashboard al cancelar una reserva.
+- [ ] Mover filtros de prestamos a la URL.
+- [ ] Mostrar etiquetas traducidas y estados vacios claros.
+- [ ] Implementar seleccion de ejemplar en la creacion de prestamos.
+
+### 13.10. P1 - Rutas y rendimiento
+
+- [ ] Migrar a `createBrowserRouter`.
+- [ ] Implementar rutas lazy con `Suspense`.
+- [ ] Agregar `errorElement` por ruta.
+- [ ] Sacar 403/404 del layout publico.
+- [ ] Separar dashboard de administrador y de lector.
+- [ ] Agregar rutas de detalle de libro, reservas administrativas y sanciones.
+- [ ] Configurar `server.proxy` en Vite para desarrollo.
+- [ ] Definir presupuesto de bundle y verificar code splitting.
+
+### 13.11. P1 - UX y accesibilidad
+
+- [ ] Reemplazar todos los `window.confirm` por dialogos accesibles.
+- [ ] Agregar `caption` a todas las tablas (prestamos incluida).
+- [ ] Dar contexto accesible a botones repetidos (`Editar libro X`).
+- [ ] Agregar skip link y `aria-busy` en tablas durante carga.
+- [ ] Traducir estados y mensajes tecnicos para el usuario final.
+- [ ] Gestionar el foco al abrir/cerrar dialogos.
+- [ ] Respetar `prefers-reduced-motion`.
+- [ ] Agregar pruebas basicas de accesibilidad.
+
+### 13.12. P1 - CSS y sistema de UI
+
+- [ ] Dividir `App.css` en CSS Modules por componente o feature.
+- [ ] Eliminar reglas duplicadas y estilos huerfanos.
+- [ ] Centralizar tokens de color, espaciado y tipografia.
+- [ ] Implementar tema claro/oscuro.
+- [ ] Crear componentes reutilizables `Button`, `Input`, `Field`, `Table`, `Dialog`, `Toast`.
+- [ ] Usar Zustand o retirarlo de dependencias.
+- [ ] Eliminar imagenes de plantilla sin uso (`hero.png`, `react.svg`, `vite.svg`).
+- [ ] Agregar estilos de impresion para reportes.
+
+### 13.13. P1 - Pruebas y calidad
+
+- [ ] Integrar MSW para simular la API y su contrato.
+- [ ] Configurar cobertura con `include: ['src']` y umbral minimo.
+- [ ] Probar login y registro (exito, error de credenciales, validacion).
+- [ ] Probar catalogo: busqueda, filtros, estado vacio y error.
+- [ ] Probar reservas: crear, cancelar, duplicado y estado.
+- [ ] Probar prestamos: crear, devolver, renovar y permisos.
+- [ ] Probar CRUD de libros y usuarios.
+- [ ] Probar cliente HTTP: 204, ProblemDetails, timeout y abort.
+- [ ] Agregar pruebas E2E de CU-01 a CU-05 con Playwright.
+- [ ] Agregar Prettier y regla de orden de imports.
+- [ ] Sustituir `console.error` por un logger o manejador central.
+- [ ] Implementar manejo global de errores de mutacion y notificaciones.
+
+### 13.14. P1 - Documentacion
+
+- [ ] Corregir el arbol de carpetas del README.
+- [ ] Corregir la afirmacion de CSS modular.
+- [ ] Eliminar el duplicado de `reservations` en el README.
+- [ ] Corregir "seleccion de ejemplar" y la validacion del login mock.
+- [ ] Documentar el contrato real de la API .NET.
+- [ ] Publicar o consumir OpenAPI para generar tipos.
+- [ ] Actualizar `.env.example` con todas las variables.
+- [ ] Mantener este TODO sincronizado con `DEUDAS_TECNICAS.txt`.
+
+### 13.15. P2 - Mejoras continuas
+
+- [ ] Tipar fechas con un formato ISO explicito.
+- [ ] Validar configuracion al arrancar (endpoint de salud o comprobacion local).
+- [ ] Sincronizar sesion entre pestanas.
+- [ ] Centralizar textos para una futura internacionalizacion.
+- [ ] Agregar meta description, titulo definitivo y favicon revisado.
+- [ ] Diferenciar errores 404, vacio y 500 en todas las pantallas.
+- [ ] Uniformar reintento manual en todas las pantallas.
+- [ ] Evaluar pruebas de regresion visual.
+- [ ] Medir rendimiento con Lighthouse y presupuesto de bundle.
+- [ ] Revisar contraste y lectores de pantalla en todas las pantallas.
+
+### 13.16. Plan de ejecucion
+
+- [ ] Fase 0: strict, import de `CatalogPage`, `enabled`, permisos de devolucion, mensajes de exito y bloqueo de mock en produccion.
+- [ ] Fase 1: cliente HTTP, endpoints/query keys, AuthProvider, `/auth/me`, logout real, migracion de libros/usuarios y validacion de DTOs.
+- [ ] Fase 2: modelo Book/BookCopy, detalle de libro, reservas administrativas, sanciones, filtros/paginacion en URL, rutas lazy y formularios RHF + Zod.
+- [ ] Fase 3: MSW, cobertura real, CSS Modules, E2E y documentacion.
+
+### 13.17. Criterios de aceptacion
+
+- [ ] `npm run lint`, `npm test` y `npm run build` pasan con TypeScript strict.
+- [ ] Ninguna pagina o componente accede a `localStorage` directamente.
+- [ ] El catalogo publico no dispara peticiones autenticadas para invitados.
+- [ ] Cerrar sesion limpia la cache de TanStack Query.
+- [ ] El modo mock es imposible en un build de produccion.
+- [ ] La cobertura real incluye `src` y supera el umbral acordado.
+- [ ] El README y este TODO describen el estado real del proyecto.
