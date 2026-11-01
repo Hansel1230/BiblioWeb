@@ -2,7 +2,8 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Link, useNavigate } from 'react-router-dom'
-import { registerUser } from '../services/auth-service'
+import { ApiError } from '../../../lib/api/client'
+import { useAuth } from '../use-auth'
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Ingresa tu nombre'),
@@ -18,20 +19,24 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { register: registerAccount } = useAuth()
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } =
     useForm<RegisterFormValues>({ resolver: zodResolver(registerSchema) })
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await registerUser({
+      await registerAccount({
         name: data.name,
         password: data.password,
         email: data.email.toLowerCase(),
       })
-      navigate('/login', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (error) {
       console.error('Error al registrar usuario:', error)
-      setError('email', { type: 'manual', message: 'No se pudo completar el registro.' })
+      setError('email', {
+        type: 'manual',
+        message: error instanceof ApiError ? error.details?.[0] ?? error.message : 'No se pudo completar el registro.',
+      })
     }
   }
 

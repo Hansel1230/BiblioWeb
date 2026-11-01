@@ -1,8 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   CURRENT_USER_KEY,
+  ACCESS_TOKEN_KEY,
+  TOKEN_EXPIRATION_KEY,
   clearCurrentUser,
+  clearSession,
   getCurrentUser,
+  getAccessToken,
+  isAccessTokenExpired,
+  saveAccessToken,
   saveCurrentUser,
 } from './session'
 
@@ -33,5 +39,26 @@ describe('session helpers', () => {
     clearCurrentUser()
 
     expect(getCurrentUser()).toBeNull()
+  })
+
+  it('stores and reads an access token with its expiration', () => {
+    const expiration = new Date(Date.now() + 60_000).toISOString()
+
+    saveAccessToken('token-value', expiration)
+
+    expect(getAccessToken()).toBe('token-value')
+    expect(window.localStorage.getItem(TOKEN_EXPIRATION_KEY)).toBe(expiration)
+    expect(isAccessTokenExpired()).toBe(false)
+  })
+
+  it('clears the complete session', () => {
+    saveCurrentUser({ name: 'Ana', email: 'ana@example.com', role: 'lector' })
+    saveAccessToken('token-value', new Date(Date.now() + 60_000).toISOString())
+
+    clearSession()
+
+    expect(window.localStorage.getItem(CURRENT_USER_KEY)).toBeNull()
+    expect(window.localStorage.getItem(ACCESS_TOKEN_KEY)).toBeNull()
+    expect(window.localStorage.getItem(TOKEN_EXPIRATION_KEY)).toBeNull()
   })
 })

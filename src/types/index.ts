@@ -1,4 +1,6 @@
 export type UserRole = 'admin' | 'lector'
+export type BackendRole = 'Administrator' | 'Librarian' | 'Reader' | 'Student'
+export type BackendUserStatus = 'Active' | 'Inactive' | 'Blocked'
 
 export type CopyStatus = 'available' | 'reserved' | 'loaned' | 'maintenance'
 
@@ -91,4 +93,11 @@ export type RegisterInput = {
   password: string
 }
 
-export type SessionUser = Pick<User, 'name' | 'email' | 'role'>
+export type SessionUser = {
+  id?: number
+  name: string
+  email: string
+  role: UserRole
+  backendRole?: BackendRole
+  status?: BackendUserStatus
+}

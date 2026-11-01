@@ -417,3 +417,345 @@
 - [ ] El modo mock es imposible en un build de produccion.
 - [ ] La cobertura real incluye `src` y supera el umbral acordado.
 - [ ] El README y este TODO describen el estado real del proyecto.
+
+---
+
+## 14. Plan de interoperabilidad Web - API Backend
+
+> **Objetivo:** reemplazar progresivamente los datos mock y el `localStorage`
+> por el contrato real de la API .NET documentado en
+> `Instructions/API_DOCUMENTATION.md`.
+>
+> **Regla de implementación:** cada módulo debe completar sus tipos, servicio,
+> hooks, pantallas, permisos, manejo de errores y pruebas antes de marcarse
+> como terminado. Las rutas, nombres de campos y estados deben verificarse
+> contra Swagger/OpenAPI del backend antes de conectar la pantalla.
+>
+> **Estado inicial:** el frontend cuenta con servicios parcialmente conectados,
+> pero el cliente HTTP no envía JWT, la sesión no persiste el token, los roles
+> del frontend no coinciden con los del backend y libros/usuarios todavía
+> realizan operaciones directamente en `localStorage`.
+
+### 14.1. Orden general de módulos
+
+- [ ] Módulo 0 - Preparación del contrato y configuración
+- [ ] Módulo 1 - Login y autenticación **(primer módulo a implementar)**
+- [ ] Módulo 2 - Catálogo público de libros
+- [ ] Módulo 3 - Administración de libros
+- [ ] Módulo 4 - Usuarios y roles
+- [ ] Módulo 5 - Categorías y ejemplares
+- [ ] Módulo 6 - Préstamos
+- [ ] Módulo 7 - Reservas
+- [ ] Módulo 8 - Multas y estado de cuenta
+- [ ] Módulo 9 - Dashboard administrativo
+- [ ] Módulo 10 - Integración, pruebas y retiro controlado de mocks
+
+### 14.2. Módulo 0 - Preparación del contrato y configuración
+
+#### Contrato con backend
+
+- [ ] Confirmar la URL HTTP y HTTPS de desarrollo con el equipo backend.
+- [ ] Confirmar que Swagger esté disponible y que el documento OpenAPI
+      corresponda a la versión desplegada.
+- [ ] Verificar en Swagger los métodos, rutas, autorización y cuerpos de:
+      `/api/auth`, `/api/books`, `/api/users`, `/api/loans`,
+      `/api/reservations`, `/api/fines` y `/api/dashboard`.
+- [ ] Confirmar los nombres exactos de los DTO: `TokenResponse`, `UserResponse`,
+      `BookResponse`, `LoanResponse`, `ReservationResponse` y `FineResponse`.
+- [ ] Confirmar los valores válidos de roles y estados mediante
+      `GET /api/metadata`.
+- [ ] Confirmar CORS para el origen local del frontend.
+- [ ] Confirmar si la autenticación usa JWT Bearer, cookies o ambos.
+- [ ] Confirmar la política de expiración y renovación de tokens.
+- [ ] Confirmar el formato real de errores de validación y reglas de negocio.
+
+#### Configuración frontend
+
+- [ ] Crear `.env.example` con `VITE_API_BASE_URL` y
+      `VITE_DATA_SOURCE`.
+- [ ] Normalizar `VITE_API_BASE_URL` para evitar barras duplicadas.
+- [ ] Separar configuración de desarrollo, pruebas y producción.
+- [ ] Validar la configuración al iniciar la aplicación.
+- [ ] Mantener `mock` como modo explícito de desarrollo y no como fallback
+      silencioso cuando falte la URL de API.
+
+#### Criterio de terminado
+
+- [ ] Existe una matriz de contrato con método, ruta, autenticación, roles,
+      request, response y errores esperados.
+- [ ] El frontend puede ejecutar `GET /api/health`.
+- [ ] La configuración inválida produce un error claro y visible.
+
+### 14.3. Módulo 1 - Login y autenticación
+
+> **Objetivo:** permitir registro, inicio de sesión, hidratación de sesión,
+> autorización de peticiones, cierre de sesión y recuperación ante expiración
+> del token. Este módulo bloquea todos los endpoints protegidos.
+
+#### 14.3.1. Tipos y modelo de sesión
+
+- [x] Crear tipos separados para `LoginRequest`, `RegisterRequest`,
+      `TokenResponse` y `UserResponse`.
+- [ ] Mapear `correo`/`nombreCompleto`/`contrasena` del backend a los nombres
+      utilizados por los formularios o adoptar los nombres del contrato en
+      los DTO de transporte.
+- [x] Agregar `id` a `SessionUser`.
+- [x] Representar los roles del backend: `Administrator`, `Librarian`,
+      `Reader` y `Student`.
+- [x] Representar los estados del usuario: `Active`, `Inactive` y `Blocked`.
+- [x] Definir un mapeo único entre roles backend y permisos de interfaz.
+- [x] No inferir el rol desde el contenido guardado en `localStorage`.
+- [x] Definir la estructura persistida de sesión: token, expiración y usuario.
+- [x] Validar las respuestas recibidas antes de guardarlas.
+
+#### 14.3.2. Almacenamiento y ciclo de vida del token
+
+- [x] Crear funciones `saveToken`, `getToken`, `clearToken` y
+      `isTokenExpired`.
+- [x] Guardar el token y su fecha `expira` tras login o registro exitoso.
+- [ ] Decidir y documentar el mecanismo de almacenamiento aprobado por el
+      backend: memoria, `sessionStorage`, `localStorage` o cookie segura.
+- [x] No guardar contraseñas en ningún almacenamiento.
+- [x] Eliminar token y usuario al cerrar sesión.
+- [x] Limpiar también la caché de TanStack Query al cerrar sesión.
+- [x] Sincronizar cambios de sesión entre pestañas mediante el evento
+      `storage`, si se usa almacenamiento del navegador.
+- [x] Evitar que una sesión expirada se considere válida solo porque existe
+      un usuario guardado localmente.
+
+#### 14.3.3. Cliente HTTP autenticado
+
+- [x] Renombrar `endpoints.auth` a `endpoints.login` y centralizar todas las
+      rutas de autenticación.
+- [x] Agregar automáticamente el encabezado `Authorization` con esquema
+      `Bearer` y el token vigente a las peticiones protegidas.
+- [x] Enviar `Accept: application/json` y `Content-Type` solo cuando exista
+      body JSON.
+- [x] Normalizar respuestas `204` sin intentar ejecutar `response.json()`.
+- [x] Agregar timeout y soporte para `AbortSignal`.
+- [x] Pasar el `signal` de TanStack Query a `fetch`.
+- [x] Conservar el cuerpo de errores del backend.
+- [x] Interpretar el formato documentado `{ estado, codigo, mensaje, detalles }`.
+- [x] Diferenciar errores de red, timeout, `400`, `401`, `403`, `404` y `409`.
+- [x] Implementar una respuesta central para `401`: limpiar sesión, invalidar
+      caché y redirigir al login conservando `from`.
+- [x] Evitar reintentos automáticos de peticiones no idempotentes.
+- [x] Agregar pruebas unitarias del cliente para token, errores y `204`.
+
+#### 14.3.4. Servicio de autenticación
+
+- [x] Implementar `POST /api/auth/login` con el request real del backend.
+- [x] Procesar `TokenResponse` (`token`, `expira`) sin asumir que devuelve
+      directamente el usuario.
+- [x] Ejecutar `GET /api/auth/me` después del login para obtener el usuario
+      autenticado.
+- [x] Implementar `POST /api/auth/register`.
+- [x] Confirmar que el registro público siempre cree un usuario `Student`
+      aunque se envíe otro rol no permitido.
+- [x] Implementar `POST /api/auth/refresh` si el backend lo habilita.
+- [x] Implementar `POST /api/auth/logout`.
+- [x] Implementar `POST /api/auth/forgot-password` cuando exista el flujo real.
+- [ ] No presentar como funcional el reset de contraseña mientras el backend
+      no reciba token, código y nueva contraseña.
+- [x] Exponer operaciones con nombres explícitos: `login`, `register`,
+      `getCurrentUser`, `refreshToken`, `logout`, `forgotPassword`.
+- [x] Reemplazar la respuesta actual que espera un objeto `user` desde login.
+
+#### 14.3.5. Estado global y protección de rutas
+
+- [x] Crear `AuthProvider` y `useAuth()` con `user`, `isLoading`, `isAuthenticated`,
+      `login`, `register`, `logout` y `refresh`.
+- [x] Hidratar la sesión al iniciar la aplicación con `GET /api/auth/me`.
+- [x] Mostrar un estado de carga mientras se valida la sesión inicial.
+- [x] Crear `RequireAuth` para rutas que requieren autenticación.
+- [x] Crear `RequireRole` para rutas restringidas por rol.
+- [x] Redirigir al login cuando no exista sesión.
+- [x] Conservar la ruta original en `location.state` o query `from`.
+- [x] Redirigir a `/403` cuando el usuario esté autenticado pero no tenga
+      permisos.
+- [ ] Actualizar la navegación según los permisos reales del backend.
+- [ ] Evitar que la autorización dependa solamente de guards visuales;
+      el backend debe seguir siendo la autoridad.
+- [x] Invalidar queries privadas cuando cambie el usuario autenticado.
+
+#### 14.3.6. Formularios y experiencia de usuario
+
+- [x] Adaptar LoginPage al request `correo`/`contrasena` o establecer un
+      adaptador formal entre formulario y DTO.
+- [x] Adaptar RegisterPage a `nombreCompleto`/`correo`/`contrasena`.
+- [x] Mantener validaciones de formato en frontend sin reemplazar las del API.
+- [x] Mostrar `mensaje` y `detalles` del backend sin exponer información
+      sensible.
+- [x] Mostrar mensajes diferenciados para credenciales inválidas, usuario
+      bloqueado, API no disponible y permisos insuficientes.
+- [x] Deshabilitar el botón durante la petición y evitar doble envío.
+- [x] Asociar mensajes de error con sus campos mediante `aria-describedby`.
+- [x] Mostrar éxito de registro según la respuesta real: sesión iniciada o
+      redirección al login.
+- [ ] Agregar recuperación de contraseña solo cuando el contrato backend esté
+      completo.
+
+#### 14.3.7. Pruebas del módulo de login
+
+- [ ] Probar login exitoso y almacenamiento de token.
+- [ ] Probar que después del login se consulte `/api/auth/me`.
+- [ ] Probar credenciales inválidas (`401`).
+- [ ] Probar usuario bloqueado o inactivo (`403` o respuesta equivalente).
+- [ ] Probar error de validación (`400`) y asociación de detalles a campos.
+- [x] Probar error de red y timeout.
+- [x] Probar que una petición protegida incluya el encabezado de autorización
+      con el esquema `Bearer` y el token vigente.
+- [x] Probar que `401` limpie la sesión y redirija al login.
+- [ ] Probar registro exitoso y correo duplicado.
+- [x] Probar logout, eliminación del token y limpieza de caché.
+- [ ] Probar hidratación de sesión válida, expirada y corrupta.
+- [ ] Probar protección de rutas sin sesión y con rol insuficiente.
+- [ ] Probar sincronización de logout entre pestañas si aplica.
+- [ ] Agregar pruebas de integración con MSW usando el contrato real.
+
+#### Criterios de terminado del módulo de login
+
+- [x] El usuario puede iniciar sesión contra el backend real.
+- [ ] El token se guarda usando el mecanismo aprobado y se envía en cada
+      endpoint protegido.
+- [x] `/api/auth/me` es la fuente de verdad del usuario y sus permisos.
+- [x] El logout invalida la sesión local, limpia caché y llama al backend.
+- [x] Una respuesta `401` no deja la aplicación en un estado autenticado falso.
+- [ ] Registro, login, logout y guards tienen pruebas automatizadas.
+- [ ] `npm run lint`, `npm test` y `npm run build` pasan.
+
+### 14.4. Módulo 2 - Catálogo público de libros
+
+- [ ] Mapear `BookResponse` del backend al modelo visual.
+- [ ] Conectar `GET /api/books`.
+- [ ] Conectar `GET /api/books/search?q={texto}` con debounce.
+- [ ] Conectar `GET /api/books/{id}` para detalle.
+- [ ] Conectar `GET /api/books/{id}/availability`.
+- [ ] Usar filtros del backend cuando el volumen de datos lo requiera.
+- [ ] Mantener búsqueda, categoría, ISBN y disponibilidad en la URL.
+- [ ] No consultar reservas para visitantes no autenticados.
+- [ ] Validar que la disponibilidad provenga del backend y no de un booleano
+      mock obsoleto.
+- [ ] Crear pruebas de carga, error, búsqueda, filtros y estado vacío.
+
+### 14.5. Módulo 3 - Administración de libros
+
+- [ ] Implementar `POST /api/books`.
+- [ ] Implementar `PUT` o `PATCH /api/books/{id}` según Swagger.
+- [ ] Implementar `DELETE /api/books/{id}` como baja lógica.
+- [ ] Extraer `BookForm` con React Hook Form y Zod.
+- [ ] Mapear `titulo`, `autor`, `editorial`, `anioPublicacion`,
+      `descripcion` e `idCategoria`.
+- [ ] Eliminar escritura directa de `localStorage` en `BooksPage`.
+- [ ] Invalidar catálogo y detalle después de cada mutación.
+- [ ] Restringir creación, edición y eliminación a `Administrator` y
+      `Librarian`.
+- [ ] Probar validaciones, permisos, conflictos y baja lógica.
+
+### 14.6. Módulo 4 - Usuarios y roles
+
+- [ ] Implementar `GET /api/users` y `GET /api/users/{id}`.
+- [ ] Implementar `POST /api/users`.
+- [ ] Implementar `PUT` o `PATCH /api/users/{id}`.
+- [ ] Implementar cambio de estado y baja lógica.
+- [ ] Mapear roles backend a etiquetas y permisos de la interfaz.
+- [ ] Extraer `UserForm` con validación tipada.
+- [ ] Eliminar escritura directa de `localStorage` en `UsersPage`.
+- [ ] No permitir que el frontend otorgue permisos no autorizados.
+- [ ] Invalidar usuarios después de crear o editar.
+- [ ] Probar CRUD, roles, estados, duplicidad de correo y permisos.
+
+### 14.7. Módulo 5 - Categorías y ejemplares
+
+- [ ] Implementar consulta y creación de categorías.
+- [ ] Separar definitivamente libro de ejemplar.
+- [ ] Implementar listado de ejemplares por libro.
+- [ ] Implementar creación de ejemplares.
+- [ ] Implementar consulta, cambio de estado y baja de ejemplares.
+- [ ] Mostrar estados `Available`, `Reserved`, `OnLoan`, `Maintenance` y
+      `Retired` con etiquetas en español.
+- [ ] Crear selección de ejemplar en el formulario de préstamo.
+- [ ] Probar disponibilidad y transiciones de estado.
+
+### 14.8. Módulo 6 - Préstamos
+
+- [ ] Corregir `CreateLoanInput` para enviar `idUsuario`, `idEjemplar` y
+      `fechaVencimiento`.
+- [ ] Implementar listado, detalle, vencidos y préstamos por usuario.
+- [ ] Cambiar devolución, renovación y cancelación a `PATCH`.
+- [ ] No enviar body en acciones que el contrato define sin body.
+- [ ] Mostrar `LoanResponse` con fechas ISO y estados backend.
+- [ ] Restringir acciones por rol y propiedad del préstamo.
+- [ ] Validar fecha futura, límite de renovaciones y reglas de negocio.
+- [ ] Invalidar préstamos, ejemplares, libros y dashboard después de mutaciones.
+- [ ] Probar conflictos, vencimiento, renovación máxima y devolución.
+
+### 14.9. Módulo 7 - Reservas
+
+- [ ] Enviar `idUsuario` e `idLibro` según el DTO real.
+- [ ] Consultar reservas del lector mediante `/api/users/{userId}/reservations`
+      si así lo exige el backend.
+- [ ] Implementar consulta general y pendientes para administración.
+- [ ] Implementar crear, aprobar, rechazar, cancelar y completar.
+- [ ] Enviar acciones como `PATCH` sin body cuando corresponda.
+- [ ] Mapear estados backend a etiquetas de UI.
+- [ ] Evitar peticiones de reservas para invitados y roles no autorizados.
+- [ ] Mostrar estado de mutación por fila.
+- [ ] Probar reservas duplicadas, permisos, cancelación y expiración.
+
+### 14.10. Módulo 8 - Multas y estado de cuenta
+
+- [ ] Crear tipos y adaptadores para `FineResponse`.
+- [ ] Implementar listado y detalle de multas.
+- [ ] Implementar creación, pago y condonación.
+- [ ] Implementar multas por usuario.
+- [ ] Implementar `GET /api/users/{userId}/account-status`.
+- [ ] Mostrar estados `Pending`, `Paid` y `Waived`.
+- [ ] Bloquear acciones cuando el estado de cuenta lo requiera.
+- [ ] Probar permisos, montos, estados y errores de reglas de negocio.
+
+### 14.11. Módulo 9 - Dashboard administrativo
+
+- [ ] Reemplazar `GET /dashboard` por los endpoints reales de dashboard.
+- [ ] Implementar summary, actividad reciente, alertas, préstamos por estado,
+      disponibilidad y vencidos.
+- [ ] Mapear respuestas numéricas a `DashboardStat`.
+- [ ] Eliminar datos mock cuando la API esté disponible.
+- [ ] Mostrar `LoadingState`, `ErrorState` y estado vacío.
+- [ ] Restringir el dashboard a `Administrator` y `Librarian`.
+- [ ] Invalidar sus queries después de préstamos, reservas y multas.
+- [ ] Probar cada endpoint y la presentación de errores parciales.
+
+### 14.12. Módulo 10 - Integración, pruebas y retiro de mocks
+
+- [ ] Configurar MSW para los contratos de todos los módulos.
+- [ ] Ejecutar pruebas contra respuestas exitosas y todos los errores
+      documentados.
+- [ ] Probar integración contra una instancia real del backend.
+- [ ] Verificar CORS, HTTPS local, expiración y refresh del token.
+- [ ] Verificar permisos con cada rol del backend.
+- [ ] Eliminar acceso directo a `localStorage` desde páginas y componentes.
+- [ ] Eliminar tipos y estados mock que contradigan el contrato real.
+- [ ] Impedir modo mock en builds de producción.
+- [ ] Ejecutar `npm run lint`, `npm test`, `npm run test:coverage` y
+      `npm run build`.
+- [ ] Validar desktop, tablet, móvil, teclado y lector de pantalla.
+- [ ] Actualizar `Instructions/API_DOCUMENTATION.md` con diferencias reales.
+- [ ] Actualizar `README.md`, `DEUDAS_TECNICAS.txt` y este archivo.
+- [ ] Registrar la versión del contrato API utilizada para la entrega.
+
+### 14.13. Secuencia de ejecución recomendada
+
+- [ ] Paso 1: completar y validar el contrato del Módulo 0.
+- [ ] Paso 2: implementar almacenamiento de token y cliente HTTP.
+- [ ] Paso 3: implementar login, `/auth/me`, registro y logout.
+- [ ] Paso 4: crear `AuthProvider`, guards y manejo global de `401`.
+- [ ] Paso 5: probar completamente el login antes de tocar módulos protegidos.
+- [ ] Paso 6: conectar catálogo público y disponibilidad.
+- [ ] Paso 7: conectar libros y usuarios administrativos.
+- [ ] Paso 8: implementar ejemplares antes de ajustar préstamos.
+- [ ] Paso 9: corregir préstamos y luego reservas.
+- [ ] Paso 10: implementar multas y dashboard.
+- [ ] Paso 11: ejecutar integración completa por rol y por flujo de negocio.
+- [ ] Paso 12: retirar gradualmente mocks, actualizar documentación y cerrar
+      únicamente las tareas que tengan evidencia de prueba.

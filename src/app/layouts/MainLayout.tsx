@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { clearCurrentUser, getCurrentUser } from '../../lib/auth/session'
+import { useAuth } from '../../features/auth/use-auth'
 
 const navigation = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -11,12 +11,11 @@ const navigation = [
 
 export function MainLayout() {
   const navigate = useNavigate()
-  const currentUser = getCurrentUser()
+  const { user: currentUser, logout } = useAuth()
   const isAdmin = currentUser?.role === 'admin'
 
   const handleLogout = () => {
-    clearCurrentUser()
-    navigate('/login', { replace: true })
+    void logout().finally(() => navigate('/login', { replace: true }))
   }
 
   return (

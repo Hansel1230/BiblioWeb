@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { LoginPage } from '../../features/auth/pages/LoginPage'
 import { RegisterPage } from '../../features/auth/pages/RegisterPage'
@@ -8,7 +8,7 @@ import { DashboardPage } from '../../features/dashboard/pages/DashboardPage'
 import { LoansPage } from '../../features/loans/pages/LoansPage'
 import { UsersPage } from '../../features/users/pages/UsersPage'
 import type { UserRole } from '../../types'
-import { getCurrentUser } from '../../lib/auth/session'
+import { useAuth } from '../../features/auth/use-auth'
 import { MainLayout } from '../layouts/MainLayout'
 import { PublicLayout } from '../layouts/PublicLayout'
 import { AccessDeniedPage } from '../pages/AccessDeniedPage'
@@ -20,18 +20,26 @@ type RouteGuardProps = {
   children: ReactNode
 }
 
-function RequireRole({ allowedRoles, children }: RouteGuardProps) {
-  if (typeof window === 'undefined') {
-    return children
-  }
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { user: currentUser, isLoading } = useAuth()
+  const location = useLocation()
 
-  const currentUser = getCurrentUser()
-
+  if (isLoading) return <p>Cargando sesión…</p>
   if (!currentUser) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace state={{ from: `${location.pathname}${location.search}` }} />
   }
 
-  if (!allowedRoles.includes(currentUser.role ?? 'lector')) {
+  return children
+}
+
+function RequireRole({ allowedRoles, children }: RouteGuardProps) {
+  return <RequireAuth><RoleGate allowedRoles={allowedRoles}>{children}</RoleGate></RequireAuth>
+}
+
+function RoleGate({ allowedRoles, children }: RouteGuardProps) {
+  const { user: currentUser } = useAuth()
+
+  if (!currentUser || !allowedRoles.includes(currentUser.role ?? 'lector')) {
     return <Navigate to="/403" replace />
   }
 

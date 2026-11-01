@@ -1,8 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { getCurrentUser } from '../../lib/auth/session'
+import { useAuth } from '../../features/auth/use-auth'
 
 export function PublicLayout() {
-  const currentUser = getCurrentUser()
+  const { user: currentUser } = useAuth()
 
   return (
     <div className="public-shell">

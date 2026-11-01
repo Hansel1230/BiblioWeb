@@ -1,0 +1,593 @@
+%PDF-1.4
+%âãÏÓ
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Length 3886 >>
+stream
+BT
+/F2 24 Tf
+1 0 0 1 48 790 Tm
+(BIBLIOWEB) Tj
+/F1 9 Tf
+1 0 0 1 48 761 Tm
+() Tj
+/F2 16 Tf
+1 0 0 1 48 748 Tm
+(Endpoints faltantes para la interoperabilidad con el backend) Tj
+/F1 9 Tf
+1 0 0 1 48 727 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 714 Tm
+() Tj
+/F1 11 Tf
+1 0 0 1 48 701 Tm
+(Documento técnico de integración Frontend - API REST .NET) Tj
+/F1 10 Tf
+1 0 0 1 48 688 Tm
+(Fecha: 31 de octubre de 2026) Tj
+/F1 9 Tf
+1 0 0 1 48 675 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 662 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 649 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 636 Tm
+(Resumen ejecutivo) Tj
+/F1 9 Tf
+1 0 0 1 48 618 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 605 Tm
+(Este documento identifica los endpoints que el backend debe exponer para que el frontend de) Tj
+/F1 9 Tf
+1 0 0 1 48 592 Tm
+(BiblioWeb pueda operar con datos reales y dejar de depender de datos simulados, arreglos estáticos y) Tj
+/F1 9 Tf
+1 0 0 1 48 579 Tm
+(localStorage.) Tj
+/F1 9 Tf
+1 0 0 1 48 566 Tm
+(El análisis se realizó sobre la estructura actual del frontend y su README. Actualmente solo se) Tj
+/F1 9 Tf
+1 0 0 1 48 553 Tm
+(consume de forma efectiva el inicio de sesión; las funcionalidades de libros, usuarios, préstamos y) Tj
+/F1 9 Tf
+1 0 0 1 48 540 Tm
+(dashboard todavía no están conectadas a la API.) Tj
+/F1 9 Tf
+1 0 0 1 48 527 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 514 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 501 Tm
+(Estado actual de la integración) Tj
+/F1 9 Tf
+1 0 0 1 48 483 Tm
+() Tj
+/F2 9 Tf
+1 0 0 1 48 470 Tm
+(Endpoint actualmente utilizado:) Tj
+/F1 9 Tf
+1 0 0 1 48 457 Tm
+(POST /api/auth/login) Tj
+/F1 9 Tf
+1 0 0 1 48 444 Tm
+(La respuesta esperada puede ser el usuario directamente o estar contenida en la propiedad user. Debe) Tj
+/F1 9 Tf
+1 0 0 1 48 431 Tm
+(incluir name, email, role y active.) Tj
+/F2 9 Tf
+1 0 0 1 48 418 Tm
+(Rutas declaradas pero aún no conectadas:) Tj
+/F1 9 Tf
+1 0 0 1 48 405 Tm
+(GET /api/dashboard    GET /api/books    GET /api/users    GET /api/loans) Tj
+/F1 9 Tf
+1 0 0 1 48 392 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 379 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 366 Tm
+(Prioridad de implementación) Tj
+/F1 9 Tf
+1 0 0 1 48 348 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 335 Tm
+(Prioridad Alta: necesaria para reemplazar datos locales y habilitar los flujos principales.) Tj
+/F1 9 Tf
+1 0 0 1 48 322 Tm
+(Prioridad Media: necesaria para completar requisitos del sistema y la administración.) Tj
+/F1 9 Tf
+1 0 0 1 48 309 Tm
+(Prioridad Técnica: necesaria para operación, seguridad y mantenimiento de la integración.) Tj
+/F1 9 Tf
+1 0 0 1 48 296 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 283 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 270 Tm
+(1. Autenticación y usuarios) Tj
+/F1 9 Tf
+1 0 0 1 48 252 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 239 Tm
+(Alta | POST /api/auth/register | Registrar lectores o estudiantes) Tj
+/F1 9 Tf
+1 0 0 1 48 226 Tm
+(Alta | GET /api/auth/me | Obtener el usuario autenticado y validar la sesión) Tj
+/F1 9 Tf
+1 0 0 1 48 213 Tm
+(Alta | POST /api/auth/logout | Cerrar la sesión en el backend) Tj
+/F1 9 Tf
+1 0 0 1 48 200 Tm
+(Media | POST /api/auth/refresh | Renovar el token, si se utiliza JWT con refresh token) Tj
+/F1 9 Tf
+1 0 0 1 48 187 Tm
+(Media | POST /api/auth/forgot-password | Solicitar recuperación de contraseña) Tj
+/F1 9 Tf
+1 0 0 1 48 174 Tm
+(Media | POST /api/auth/reset-password | Restablecer contraseña) Tj
+/F1 9 Tf
+1 0 0 1 48 161 Tm
+(Alta | GET /api/users | Listar usuarios para administración) Tj
+/F1 9 Tf
+1 0 0 1 48 148 Tm
+(Alta | GET /api/users/{id} | Consultar detalle de un usuario) Tj
+/F1 9 Tf
+1 0 0 1 48 135 Tm
+(Alta | POST /api/users | Crear un usuario) Tj
+/F1 9 Tf
+1 0 0 1 48 122 Tm
+(Alta | PUT/PATCH /api/users/{id} | Editar datos, rol o estado) Tj
+/F1 9 Tf
+1 0 0 1 48 109 Tm
+(Alta | PATCH /api/users/{id}/status | Activar o desactivar un usuario) Tj
+/F1 9 Tf
+1 0 0 1 48 96 Tm
+(Alta | DELETE /api/users/{id} | Eliminar o retirar un usuario) Tj
+/F1 9 Tf
+1 0 0 1 48 83 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 70 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 57 Tm
+(2. Libros y catálogo) Tj
+/F1 9 Tf
+1 0 0 1 48 39 Tm
+() Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 4221 >>
+stream
+BT
+/F1 9 Tf
+1 0 0 1 48 790 Tm
+(Alta | GET /api/books | Listar libros) Tj
+/F1 9 Tf
+1 0 0 1 48 777 Tm
+(Alta | GET /api/books/{id} | Consultar un libro) Tj
+/F1 9 Tf
+1 0 0 1 48 764 Tm
+(Alta | POST /api/books | Registrar un libro) Tj
+/F1 9 Tf
+1 0 0 1 48 751 Tm
+(Alta | PUT/PATCH /api/books/{id} | Editar información del libro) Tj
+/F1 9 Tf
+1 0 0 1 48 738 Tm
+(Alta | DELETE /api/books/{id} | Eliminar o desactivar un libro) Tj
+/F1 9 Tf
+1 0 0 1 48 725 Tm
+(Alta | GET /api/books/search | Buscar por título, autor, categoría o ISBN) Tj
+/F1 9 Tf
+1 0 0 1 48 712 Tm
+(Alta | GET /api/books/{id}/availability | Consultar disponibilidad actual) Tj
+/F1 9 Tf
+1 0 0 1 48 699 Tm
+(Media | GET /api/categories | Obtener categorías disponibles) Tj
+/F1 9 Tf
+1 0 0 1 48 686 Tm
+(El modelo debe contemplar estados como Disponible, Reservado, En préstamo y En mantenimiento, además) Tj
+/F1 9 Tf
+1 0 0 1 48 673 Tm
+(de ISBN, ejemplares totales y ejemplares disponibles.) Tj
+/F1 9 Tf
+1 0 0 1 48 660 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 647 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 634 Tm
+(3. Ejemplares físicos) Tj
+/F1 9 Tf
+1 0 0 1 48 616 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 603 Tm
+(Alta | GET /api/books/{bookId}/copies | Listar ejemplares de un libro) Tj
+/F1 9 Tf
+1 0 0 1 48 590 Tm
+(Alta | POST /api/books/{bookId}/copies | Registrar un ejemplar) Tj
+/F1 9 Tf
+1 0 0 1 48 577 Tm
+(Alta | GET /api/copies/{id} | Consultar un ejemplar) Tj
+/F1 9 Tf
+1 0 0 1 48 564 Tm
+(Alta | PATCH /api/copies/{id}/status | Cambiar estado del ejemplar) Tj
+/F1 9 Tf
+1 0 0 1 48 551 Tm
+(Alta | DELETE /api/copies/{id} | Retirar un ejemplar) Tj
+/F1 9 Tf
+1 0 0 1 48 538 Tm
+(La disponibilidad debe controlarse por ejemplar físico, no solamente por título.) Tj
+/F1 9 Tf
+1 0 0 1 48 525 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 512 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 499 Tm
+(4. Préstamos) Tj
+/F1 9 Tf
+1 0 0 1 48 481 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 468 Tm
+(Alta | GET /api/loans | Listar préstamos) Tj
+/F1 9 Tf
+1 0 0 1 48 455 Tm
+(Alta | GET /api/loans/{id} | Consultar un préstamo) Tj
+/F1 9 Tf
+1 0 0 1 48 442 Tm
+(Alta | GET /api/users/{userId}/loans | Consultar préstamos de un lector) Tj
+/F1 9 Tf
+1 0 0 1 48 429 Tm
+(Alta | POST /api/loans | Registrar un préstamo) Tj
+/F1 9 Tf
+1 0 0 1 48 416 Tm
+(Alta | PATCH /api/loans/{id}/return | Registrar devolución) Tj
+/F1 9 Tf
+1 0 0 1 48 403 Tm
+(Alta | PATCH /api/loans/{id}/renew | Renovar el plazo) Tj
+/F1 9 Tf
+1 0 0 1 48 390 Tm
+(Media | PATCH /api/loans/{id}/cancel | Cancelar un préstamo) Tj
+/F1 9 Tf
+1 0 0 1 48 377 Tm
+(Media | GET /api/loans/overdue | Listar préstamos vencidos) Tj
+/F1 9 Tf
+1 0 0 1 48 364 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 351 Tm
+() Tj
+/F2 9 Tf
+1 0 0 1 48 338 Tm
+(Solicitud sugerida para crear un préstamo:) Tj
+/F1 9 Tf
+1 0 0 1 48 325 Tm
+({"userId": 2, "copyId": 15, "dueDate": "2026-11-15"}) Tj
+/F1 9 Tf
+1 0 0 1 48 312 Tm
+(El backend debe impedir prestar ejemplares no disponibles, usuarios inactivos o bloqueados, y) Tj
+/F1 9 Tf
+1 0 0 1 48 299 Tm
+(exceder los límites configurados.) Tj
+/F1 9 Tf
+1 0 0 1 48 286 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 273 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 260 Tm
+(5. Reservas) Tj
+/F1 9 Tf
+1 0 0 1 48 242 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 229 Tm
+(Alta | GET /api/reservations | Listar reservas para administración) Tj
+/F1 9 Tf
+1 0 0 1 48 216 Tm
+(Alta | GET /api/users/{userId}/reservations | Consultar reservas del lector) Tj
+/F1 9 Tf
+1 0 0 1 48 203 Tm
+(Alta | GET /api/reservations/{id} | Consultar una reserva) Tj
+/F1 9 Tf
+1 0 0 1 48 190 Tm
+(Alta | POST /api/reservations | Solicitar una reserva) Tj
+/F1 9 Tf
+1 0 0 1 48 177 Tm
+(Alta | PATCH /api/reservations/{id}/approve | Aprobar una reserva) Tj
+/F1 9 Tf
+1 0 0 1 48 164 Tm
+(Alta | PATCH /api/reservations/{id}/reject | Rechazar una reserva) Tj
+/F1 9 Tf
+1 0 0 1 48 151 Tm
+(Alta | PATCH /api/reservations/{id}/cancel | Cancelar una reserva) Tj
+/F1 9 Tf
+1 0 0 1 48 138 Tm
+(Alta | PATCH /api/reservations/{id}/complete | Marcarla como retirada) Tj
+/F1 9 Tf
+1 0 0 1 48 125 Tm
+(Media | GET /api/reservations/pending | Listar reservas pendientes) Tj
+/F1 9 Tf
+1 0 0 1 48 112 Tm
+(Estados recomendados: Pendiente, Aprobada, Rechazada, Cancelada, Retirada y Expirada.) Tj
+/F1 9 Tf
+1 0 0 1 48 99 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 86 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 73 Tm
+(6. Dashboard) Tj
+/F1 9 Tf
+1 0 0 1 48 55 Tm
+() Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 4054 >>
+stream
+BT
+/F1 9 Tf
+1 0 0 1 48 790 Tm
+(Alta | GET /api/dashboard/summary | Indicadores generales) Tj
+/F1 9 Tf
+1 0 0 1 48 777 Tm
+(Media | GET /api/dashboard/recent-activity | Actividad reciente) Tj
+/F1 9 Tf
+1 0 0 1 48 764 Tm
+(Media | GET /api/dashboard/alerts | Alertas) Tj
+/F1 9 Tf
+1 0 0 1 48 751 Tm
+(Media | GET /api/dashboard/loans-by-status | Préstamos agrupados por estado) Tj
+/F1 9 Tf
+1 0 0 1 48 738 Tm
+(Media | GET /api/dashboard/books-availability | Disponibilidad de libros) Tj
+/F1 9 Tf
+1 0 0 1 48 725 Tm
+(Media | GET /api/dashboard/overdue | Resumen de retrasos) Tj
+/F1 9 Tf
+1 0 0 1 48 712 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 699 Tm
+() Tj
+/F2 9 Tf
+1 0 0 1 48 686 Tm
+(Respuesta sugerida:) Tj
+/F1 9 Tf
+1 0 0 1 48 673 Tm
+({"activeLoans":184, "availableBooks":1240, "activeUsers":426, "overdueLoans":17,) Tj
+/F1 9 Tf
+1 0 0 1 48 660 Tm
+("recentActivity":[], "alerts":[]}) Tj
+/F1 9 Tf
+1 0 0 1 48 647 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 634 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 621 Tm
+(7. Sanciones y multas) Tj
+/F1 9 Tf
+1 0 0 1 48 603 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 590 Tm
+(Alta | GET /api/fines | Listar multas) Tj
+/F1 9 Tf
+1 0 0 1 48 577 Tm
+(Alta | GET /api/users/{userId}/fines | Consultar multas de un usuario) Tj
+/F1 9 Tf
+1 0 0 1 48 564 Tm
+(Alta | GET /api/fines/{id} | Consultar una multa) Tj
+/F1 9 Tf
+1 0 0 1 48 551 Tm
+(Media | POST /api/fines | Registrar una sanción manual) Tj
+/F1 9 Tf
+1 0 0 1 48 538 Tm
+(Alta | PATCH /api/fines/{id}/pay | Registrar pago o regularización) Tj
+/F1 9 Tf
+1 0 0 1 48 525 Tm
+(Media | PATCH /api/fines/{id}/waive | Anular una multa autorizadamente) Tj
+/F1 9 Tf
+1 0 0 1 48 512 Tm
+(Alta | GET /api/users/{userId}/account-status | Consultar bloqueo o estado de cuenta) Tj
+/F1 9 Tf
+1 0 0 1 48 499 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 486 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 473 Tm
+(8. Endpoints técnicos y contrato) Tj
+/F1 9 Tf
+1 0 0 1 48 455 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 442 Tm
+(GET /api/health | Verificar disponibilidad de la API) Tj
+/F1 9 Tf
+1 0 0 1 48 429 Tm
+(GET /swagger/v1/swagger.json | Consultar el contrato OpenAPI) Tj
+/F1 9 Tf
+1 0 0 1 48 416 Tm
+(GET /api/metadata | Obtener estados, roles y catálogos permitidos) Tj
+/F1 9 Tf
+1 0 0 1 48 403 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 390 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 377 Tm
+(Contrato mínimo recomendado) Tj
+/F1 9 Tf
+1 0 0 1 48 359 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 346 Tm
+(Todos los endpoints protegidos deben documentar autenticación, roles permitidos, parámetros, DTO de) Tj
+/F1 9 Tf
+1 0 0 1 48 333 Tm
+(entrada, DTO de salida, códigos HTTP y errores de validación.) Tj
+/F2 9 Tf
+1 0 0 1 48 320 Tm
+(Códigos HTTP esperados:) Tj
+/F1 9 Tf
+1 0 0 1 48 307 Tm
+(200/201: operación exitosa; 204: operación exitosa sin contenido; 400: datos inválidos; 401: no) Tj
+/F1 9 Tf
+1 0 0 1 48 294 Tm
+(autenticado; 403: sin permisos; 404: recurso inexistente; 409: conflicto de negocio; 422: regla de) Tj
+/F1 9 Tf
+1 0 0 1 48 281 Tm
+(negocio no cumplida; 500: error interno.) Tj
+/F1 9 Tf
+1 0 0 1 48 268 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 255 Tm
+() Tj
+/F2 9 Tf
+1 0 0 1 48 242 Tm
+(Formato de error sugerido:) Tj
+/F1 9 Tf
+1 0 0 1 48 229 Tm
+({"status": 409, "code": "BOOK_NOT_AVAILABLE", "message": "El ejemplar no está disponible.",) Tj
+/F1 9 Tf
+1 0 0 1 48 216 Tm
+("details": []}) Tj
+/F1 9 Tf
+1 0 0 1 48 203 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 190 Tm
+() Tj
+/F2 13 Tf
+1 0 0 1 48 177 Tm
+(Recomendaciones de integración) Tj
+/F1 9 Tf
+1 0 0 1 48 159 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 146 Tm
+(• Alinear los tipos TypeScript con los DTOs reales del backend.) Tj
+/F1 9 Tf
+1 0 0 1 48 133 Tm
+(• Reemplazar localStorage y arreglos estáticos por servicios HTTP por feature.) Tj
+/F1 9 Tf
+1 0 0 1 48 120 Tm
+(• Centralizar autenticación, encabezados, manejo de errores y expiración de sesión en el cliente) Tj
+/F1 9 Tf
+1 0 0 1 48 107 Tm
+(API.) Tj
+/F1 9 Tf
+1 0 0 1 48 94 Tm
+(• Usar TanStack Query para caché, invalidación y estados de carga.) Tj
+/F1 9 Tf
+1 0 0 1 48 81 Tm
+(• Aplicar las reglas de negocio en el backend; el frontend solo debe anticipar y reflejar errores.) Tj
+/F1 9 Tf
+1 0 0 1 48 68 Tm
+(• Proteger las operaciones administrativas con autorización por rol.) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 618 >>
+stream
+BT
+/F1 9 Tf
+1 0 0 1 48 790 Tm
+(• Publicar Swagger/OpenAPI como fuente única de verdad para el contrato.) Tj
+/F2 13 Tf
+1 0 0 1 48 777 Tm
+(Conclusión) Tj
+/F1 9 Tf
+1 0 0 1 48 759 Tm
+() Tj
+/F1 9 Tf
+1 0 0 1 48 746 Tm
+(El mínimo necesario para conectar el frontend con datos reales comprende autenticación, usuarios,) Tj
+/F1 9 Tf
+1 0 0 1 48 733 Tm
+(libros, préstamos, reservas, multas y dashboard. El equipo debe confirmar con backend los nombres) Tj
+/F1 9 Tf
+1 0 0 1 48 720 Tm
+(definitivos, DTOs, estados y mecanismo de autenticación antes de implementar los servicios en el) Tj
+/F1 9 Tf
+1 0 0 1 48 707 Tm
+(frontend.) Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 11 0 R >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000141 00000 n 
+0000000238 00000 n 
+0000000340 00000 n 
+0000004278 00000 n 
+0000004414 00000 n 
+0000008687 00000 n 
+0000008823 00000 n 
+0000012929 00000 n 
+0000013066 00000 n 
+0000013736 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+13874
+%%EOF
