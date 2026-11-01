@@ -208,8 +208,8 @@
 ### 13.1. P0 - Fuente unica de datos
 
 - [ ] Crear una capa `api/` por feature (`books`, `users`, `loans`, `reservations`, `dashboard`, `auth`) con funciones tipadas.
-- [ ] Migrar `BooksPage` a servicios y hooks; eliminar `readBooksFromStorage`.
-- [ ] Migrar `UsersPage` a servicios y hooks; eliminar `readUsersFromStorage`.
+- [x] Migrar `BooksPage` a servicios y hooks; eliminar `readBooksFromStorage`.
+- [x] Migrar `UsersPage` a servicios y hooks; eliminar `readUsersFromStorage`.
 - [ ] Eliminar todo acceso directo a `localStorage` desde paginas y componentes.
 - [ ] Reutilizar `readMockValue`/`writeMockValue` en lugar de duplicar la lectura de storage.
 - [ ] Invalidar la query de usuarios despues del registro.
@@ -626,7 +626,7 @@
 
 ### 14.4. Módulo 2 - Catálogo público de libros
 
-- [ ] Mapear `BookResponse` del backend al modelo visual.
+- [x] Mapear `BookResponse` del backend al modelo visual.
 - [ ] Conectar `GET /api/books`.
 - [ ] Conectar `GET /api/books/search?q={texto}` con debounce.
 - [ ] Conectar `GET /api/books/{id}` para detalle.
@@ -646,7 +646,7 @@
 - [ ] Extraer `BookForm` con React Hook Form y Zod.
 - [ ] Mapear `titulo`, `autor`, `editorial`, `anioPublicacion`,
       `descripcion` e `idCategoria`.
-- [ ] Eliminar escritura directa de `localStorage` en `BooksPage`.
+- [x] Eliminar escritura directa de `localStorage` en `BooksPage`.
 - [ ] Invalidar catálogo y detalle después de cada mutación.
 - [ ] Restringir creación, edición y eliminación a `Administrator` y
       `Librarian`.
@@ -658,9 +658,9 @@
 - [ ] Implementar `POST /api/users`.
 - [ ] Implementar `PUT` o `PATCH /api/users/{id}`.
 - [ ] Implementar cambio de estado y baja lógica.
-- [ ] Mapear roles backend a etiquetas y permisos de la interfaz.
+- [x] Mapear roles backend a etiquetas y permisos de la interfaz.
 - [ ] Extraer `UserForm` con validación tipada.
-- [ ] Eliminar escritura directa de `localStorage` en `UsersPage`.
+- [x] Eliminar escritura directa de `localStorage` en `UsersPage`.
 - [ ] No permitir que el frontend otorgue permisos no autorizados.
 - [ ] Invalidar usuarios después de crear o editar.
 - [ ] Probar CRUD, roles, estados, duplicidad de correo y permisos.

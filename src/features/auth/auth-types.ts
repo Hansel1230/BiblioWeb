@@ -9,8 +9,14 @@ export const userResponseSchema = z.object({
   id: z.number(),
   nombreCompleto: z.string().min(1),
   correo: z.string().email(),
-  rol: z.enum(['Administrator', 'Librarian', 'Reader', 'Student']),
-  estado: z.enum(['Active', 'Inactive', 'Blocked']),
+  rol: z.union([
+    z.enum(['Administrator', 'Librarian', 'Reader', 'Student']),
+    z.number().int().min(0).max(3),
+  ]),
+  estado: z.union([
+    z.enum(['Active', 'Inactive', 'Blocked']),
+    z.number().int().min(0).max(2),
+  ]),
   fechaCreacion: z.string(),
 })
 

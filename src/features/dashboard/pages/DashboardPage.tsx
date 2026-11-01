@@ -22,9 +22,9 @@ export function DashboardPage() {
               <article key={stat.label} className="stat-card">
                 <p>{stat.label}</p>
                 <strong>{stat.value}</strong>
-                <span className={stat.positive ? 'trend positive' : 'trend negative'}>
+                {stat.change && <span className={stat.positive ? 'trend positive' : 'trend negative'}>
                   {stat.change}
-                </span>
+                </span>}
               </article>
             ))}
           </div>

@@ -14,23 +14,36 @@ type LoginInput = {
 
 type AuthenticatedUser = SessionUser & { active: boolean }
 
+function normalizeRole(role: UserResponse['rol']): Exclude<UserResponse['rol'], number> {
+  if (typeof role === 'string') return role
+  return ['Administrator', 'Librarian', 'Reader', 'Student'][role] as Exclude<UserResponse['rol'], number>
+}
+
+function normalizeStatus(status: UserResponse['estado']): Exclude<UserResponse['estado'], number> {
+  if (typeof status === 'string') return status
+  return ['Active', 'Inactive', 'Blocked'][status] as Exclude<UserResponse['estado'], number>
+}
+
 function getMockUsers(): User[] {
   return readMockValue(MOCK_KEYS.users, defaultMockUsers)
 }
 
 function mapRole(role: UserResponse['rol']): SessionUser['role'] {
-  return role === 'Administrator' ? 'admin' : 'lector'
+  return normalizeRole(role) === 'Administrator' ? 'admin' : 'lector'
 }
 
 function mapUser(response: UserResponse): AuthenticatedUser {
+  const backendRole = normalizeRole(response.rol)
+  const status = normalizeStatus(response.estado)
+
   return {
     id: response.id,
     name: response.nombreCompleto,
     email: response.correo,
     role: mapRole(response.rol),
-    backendRole: response.rol,
-    status: response.estado,
-    active: response.estado === 'Active',
+    backendRole,
+    status,
+    active: status === 'Active',
   }
 }
 
