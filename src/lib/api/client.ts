@@ -32,9 +32,12 @@ function notifyUnauthorized() {
 }
 
 async function requestAccessToken(): Promise<boolean> {
+  const currentToken = getAccessToken()
+  const headers = new Headers({ Accept: 'application/json' })
+  if (currentToken) headers.set('Authorization', `Bearer ${currentToken}`)
   const response = await fetch(`${apiBaseUrl.replace(/\/$/, '')}${endpoints.refresh}`, {
     method: 'POST',
-    headers: { Accept: 'application/json' },
+    headers,
     credentials: 'include',
   })
 
@@ -117,10 +120,16 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit, allowRefre
     let code: string | undefined
     let details: string[] | undefined
     try {
-      const errorBody = await response.json() as { mensaje?: string; codigo?: string; detalles?: string[] }
-      message = errorBody.mensaje ?? message
+      const errorBody = await response.json() as {
+        mensaje?: string
+        message?: string
+        codigo?: string
+        detalles?: string[]
+        errors?: Record<string, string[]>
+      }
+      message = errorBody.mensaje ?? errorBody.message ?? message
       code = errorBody.codigo
-      details = errorBody.detalles
+      details = errorBody.detalles ?? Object.values(errorBody.errors ?? {}).flat()
     } catch {
       // Some HTTP errors do not include a JSON body.
     }
@@ -169,6 +178,10 @@ export function apiPatch<TResponse, TBody>(endpoint: string, body: TBody): Promi
     },
     body: JSON.stringify(body),
   })
+}
+
+export function apiPatchWithoutBody<TResponse>(endpoint: string): Promise<TResponse> {
+  return apiRequest<TResponse>(endpoint, { method: 'PATCH' })
 }
 
 export function apiDelete(endpoint: string): Promise<void> {

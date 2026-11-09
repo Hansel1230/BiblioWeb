@@ -9,11 +9,11 @@ type CopyResponse = {
   id: number
   idLibro: number
   codigoInventario: string
-  estado: 'Available' | 'Reserved' | 'OnLoan' | 'Maintenance' | 'Retired'
+  estado: string | number
   notas?: string | null
 }
 
-const backendStatus: Record<CopyStatus, CopyResponse['estado']> = {
+const backendStatus: Record<CopyStatus, string> = {
   available: 'Available',
   reserved: 'Reserved',
   loaned: 'OnLoan',
@@ -21,16 +21,23 @@ const backendStatus: Record<CopyStatus, CopyResponse['estado']> = {
   retired: 'Retired',
 }
 
-const frontendStatus: Record<CopyResponse['estado'], CopyStatus> = {
+const frontendStatus: Record<string, CopyStatus> = {
   Available: 'available',
   Reserved: 'reserved',
   OnLoan: 'loaned',
+  Loaned: 'loaned',
   Maintenance: 'maintenance',
   Retired: 'retired',
 }
 
 function mapStatus(status: CopyResponse['estado']): CopyStatus {
-  return frontendStatus[status]
+  if (typeof status === 'number') {
+    const numericStatuses: CopyStatus[] = ['available', 'reserved', 'loaned', 'maintenance', 'retired']
+    return numericStatuses[status] ?? 'maintenance'
+  }
+  const compactStatus = status.replace(/[-_\s]/g, '')
+  const matchingStatus = Object.keys(frontendStatus).find((key) => key.toLowerCase() === compactStatus.toLowerCase())
+  return matchingStatus ? frontendStatus[matchingStatus] : 'maintenance'
 }
 
 function mapCopy(copy: CopyResponse): BookCopy {
@@ -79,7 +86,7 @@ export function createBookCopy(bookId: number, input: CreateBookCopyInput): Prom
 
 export function updateBookCopyStatus(id: number, status: CopyStatus): Promise<void> {
   if (dataSource === 'api') {
-    return apiPatch<void, { estado: CopyResponse['estado'] }>(`${endpoints.copies}/${id}/status`, { estado: backendStatus[status] })
+    return apiPatch<void, { estado: string }>(`${endpoints.copies}/${id}/status`, { estado: backendStatus[status] })
   }
   const copies = mockCopies()
   if (!copies.some((copy) => copy.id === id)) return Promise.reject(new Error('El ejemplar no existe.'))

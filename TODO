@@ -236,7 +236,7 @@
 
 - [ ] Separar `Book` (metadatos) de `BookCopy` (inventario, codigo, estado, ubicacion).
 - [ ] Usar `BookCopy` en la UI y mostrar el estado por ejemplar (RF-03).
-- [ ] Corregir `CreateLoanInput`/`Loan`: no confundir `bookId` con `bookCopyId`.
+- [x] Corregir `CreateLoanInput`/`Loan`: no confundir `bookId` con `bookCopyId`.
 - [ ] Definir estados de dominio como enums estables en ingles y etiquetas en espanol en la capa UI.
 - [ ] Revisar el modelo de `Reservation` (libro/ejemplar, titulo, expiracion).
 - [ ] Implementar el flujo de `Penalty` (RF-07).
@@ -674,17 +674,17 @@
 - [x] Implementar consulta, cambio de estado y baja de ejemplares.
 - [x] Mostrar estados `Available`, `Reserved`, `OnLoan`, `Maintenance` y
       `Retired` con etiquetas en español.
-- [ ] Crear selección de ejemplar en el formulario de préstamo.
+- [x] Crear selección de ejemplar en el formulario de préstamo.
 - [ ] Probar disponibilidad y transiciones de estado.
 
 ### 14.8. Módulo 6 - Préstamos
 
-- [ ] Corregir `CreateLoanInput` para enviar `idUsuario`, `idEjemplar` y
+- [x] Corregir `CreateLoanInput` para enviar `idUsuario`, `idEjemplar` y
       `fechaVencimiento`.
 - [ ] Implementar listado, detalle, vencidos y préstamos por usuario.
-- [ ] Cambiar devolución, renovación y cancelación a `PATCH`.
-- [ ] No enviar body en acciones que el contrato define sin body.
-- [ ] Mostrar `LoanResponse` con fechas ISO y estados backend.
+- [x] Cambiar devolución, renovación y cancelación a `PATCH`.
+- [x] No enviar body en acciones que el contrato define sin body.
+- [x] Mostrar `LoanResponse` con fechas ISO y estados backend.
 - [ ] Restringir acciones por rol y propiedad del préstamo.
 - [ ] Validar fecha futura, límite de renovaciones y reglas de negocio.
 - [ ] Invalidar préstamos, ejemplares, libros y dashboard después de mutaciones.
@@ -692,14 +692,14 @@
 
 ### 14.9. Módulo 7 - Reservas
 
-- [ ] Enviar `idUsuario` e `idLibro` según el DTO real.
-- [ ] Consultar reservas del lector mediante `/api/users/{userId}/reservations`
+- [x] Enviar `idUsuario` e `idLibro` según el DTO real.
+- [x] Consultar reservas del lector mediante `/api/users/{userId}/reservations`
       si así lo exige el backend.
 - [ ] Implementar consulta general y pendientes para administración.
 - [ ] Implementar crear, aprobar, rechazar, cancelar y completar.
-- [ ] Enviar acciones como `PATCH` sin body cuando corresponda.
-- [ ] Mapear estados backend a etiquetas de UI.
-- [ ] Evitar peticiones de reservas para invitados y roles no autorizados.
+- [x] Enviar acciones como `PATCH` sin body cuando corresponda.
+- [x] Mapear estados backend a etiquetas de UI.
+- [x] Evitar peticiones de reservas para invitados y roles no autorizados.
 - [ ] Mostrar estado de mutación por fila.
 - [ ] Probar reservas duplicadas, permisos, cancelación y expiración.
 

@@ -33,11 +33,17 @@ export function LoginPage() {
     } catch (error) {
       console.error('Error al iniciar sesión:', error)
       const message = error instanceof ApiError
-        ? error.status === 403
-          ? 'El usuario está bloqueado o no tiene acceso.'
-          : error.status === 0
-            ? 'No se pudo conectar con la API.'
-            : error.details?.[0] ?? error.message
+        ? error.status === 400 || error.status === 422
+          ? error.details?.[0] ?? 'Los datos de acceso no son válidos.'
+          : error.status === 401
+            ? 'Correo o contraseña incorrectos.'
+            : error.status === 403
+              ? 'El usuario está bloqueado o no tiene acceso.'
+              : error.status >= 500
+                ? 'La API no pudo iniciar sesión. Intenta nuevamente.'
+                : error.status === 0
+                  ? 'No se pudo conectar con la API.'
+                  : error.details?.[0] ?? error.message
         : 'No se pudo iniciar sesión. Verifica tus credenciales o la conexión.'
       setError('password', {
         type: 'manual',

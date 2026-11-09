@@ -15,8 +15,8 @@ export function useCreateReservation() {
   })
 }
 
-export function useReservations() {
-  return useQuery({ queryKey: ['reservations'], queryFn: getReservations })
+export function useReservations(enabled = true) {
+  return useQuery({ queryKey: ['reservations'], queryFn: getReservations, enabled })
 }
 
 export function useCancelReservation() {

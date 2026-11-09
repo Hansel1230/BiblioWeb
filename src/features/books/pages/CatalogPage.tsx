@@ -10,7 +10,7 @@ export function CatalogPage() {
   const currentUser = getCurrentUser()
   const { data: books = [], isLoading, isError } = useBooks()
   const reservationMutation = useCreateReservation()
-  const reservationsQuery = useReservations()
+  const reservationsQuery = useReservations(Boolean(currentUser?.id))
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [availability, setAvailability] = useState('')
@@ -84,7 +84,9 @@ export function CatalogPage() {
                         disabled={!book.available || reservationMutation.isPending}
                         onClick={() => {
                           if (window.confirm(`¿Deseas reservar "${book.title}"?`)) {
-                            reservationMutation.mutate({ bookId: book.id }, { onSuccess: () => setReservedBookIds((ids) => [...ids, book.id]) })
+                            if (currentUser?.id) {
+                              reservationMutation.mutate({ idUsuario: currentUser.id, idLibro: book.id }, { onSuccess: () => setReservedBookIds((ids) => [...ids, book.id]) })
+                            }
                           }
                         }}
                       >

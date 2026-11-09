@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createBookCopy, deleteBookCopy, getBookCopies, updateBookCopyStatus } from '../services/copies-service'
-import type { CopyStatus, CreateBookCopyInput } from '../../../types'
+import type { BookCopy, CopyStatus, CreateBookCopyInput } from '../../../types'
 
 export function useBookCopies(bookId: number) {
   return useQuery({
     queryKey: ['book-copies', bookId],
     queryFn: () => getBookCopies(bookId),
+    enabled: Number.isInteger(bookId) && bookId > 0,
   })
 }
 
@@ -35,7 +36,8 @@ export function useDeleteBookCopy(bookId: number) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: deleteBookCopy,
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData<BookCopy[]>(['book-copies', bookId], (copies = []) => copies.map((copy) => copy.id === id ? { ...copy, status: 'retired' } : copy))
       void queryClient.invalidateQueries({ queryKey: ['book-copies', bookId] })
       void queryClient.invalidateQueries({ queryKey: ['books'] })
     },

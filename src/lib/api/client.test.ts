@@ -44,6 +44,8 @@ describe('api client', () => {
     await expect(apiGet<{ ok: boolean }>('/api/private')).resolves.toEqual({ ok: true })
 
     expect(fetchMock).toHaveBeenCalledTimes(3)
+    const refreshRequest = fetchMock.mock.calls[1][1] as RequestInit
+    expect((refreshRequest.headers as Headers).get('Authorization')).toBe('Bearer expired-token')
     const retryRequest = fetchMock.mock.calls[2][1] as RequestInit
     expect((retryRequest.headers as Headers).get('Authorization')).toBe('Bearer refreshed-token')
   })

@@ -4,6 +4,7 @@ import { ErrorState } from '../../../components/ui/ErrorState'
 import { LoadingState } from '../../../components/ui/LoadingState'
 import { SuccessMessage } from '../../../components/ui/SuccessMessage'
 import { useCancelReservation, useReservations } from '../hooks/useReservations'
+import { ApiError } from '../../../lib/api/client'
 
 export function ReservationsPage() {
   const reservationsQuery = useReservations()
@@ -11,7 +12,16 @@ export function ReservationsPage() {
   const cancelMutation = useCancelReservation()
 
   if (reservationsQuery.isLoading || booksQuery.isLoading) return <section className="page-shell"><LoadingState message="Cargando reservas…" /></section>
-  if (reservationsQuery.isError || booksQuery.isError) return <section className="page-shell"><ErrorState message="No se pudieron cargar las reservas." onRetry={() => void reservationsQuery.refetch()} /></section>
+  if (reservationsQuery.isError || booksQuery.isError) {
+    const error = reservationsQuery.error
+    const message = error instanceof ApiError
+      ? error.status === 401 ? 'Tu sesión no es válida. Inicia sesión nuevamente.'
+        : error.status === 403 ? 'No tienes permisos para consultar estas reservas.'
+          : error.status >= 500 ? 'La API no pudo cargar las reservas.'
+            : `${error.message} ${(error.details ?? []).join(' ')}`
+      : 'No se pudieron cargar las reservas.'
+    return <section className="page-shell"><ErrorState message={message} onRetry={() => void reservationsQuery.refetch()} /></section>
+  }
 
   const reservations = reservationsQuery.data ?? []
   const books = booksQuery.data ?? []
@@ -20,7 +30,12 @@ export function ReservationsPage() {
     <section className="page-shell">
       <div className="page-header"><div><p className="eyebrow">Mi biblioteca</p><h1>Mis reservas</h1></div></div>
       {cancelMutation.isSuccess && <SuccessMessage message="Reserva cancelada correctamente." />}
-      {cancelMutation.isError && <ErrorState message="No se pudo cancelar la reserva." />}
+      {cancelMutation.isError && <ErrorState message={cancelMutation.error instanceof ApiError
+        ? cancelMutation.error.status === 401 ? 'Tu sesión no es válida.'
+          : cancelMutation.error.status === 404 ? 'La reserva no existe.'
+            : cancelMutation.error.status === 409 ? 'La reserva no puede cancelarse en su estado actual.'
+              : `${cancelMutation.error.message} ${(cancelMutation.error.details ?? []).join(' ')}`
+        : 'No se pudo cancelar la reserva.'} />}
       {reservations.length === 0 ? <EmptyState message="No tienes reservas registradas." /> : (
         <div className="table-panel">
           <table>

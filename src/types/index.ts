@@ -101,16 +101,16 @@ export type Loan = {
 }
 
 export type CreateLoanInput = {
-  userId: number
-  bookId: number
-  dueDate: string
+  idUsuario: number
+  idEjemplar: number
+  fechaVencimiento: string
 }
 
 export type Reservation = {
   id: number
   userId: number
   bookId: number
-  status: 'pending' | 'approved' | 'cancelled' | 'expired'
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'expired' | 'pickedUp'
   createdAt: string
   expiresAt?: string
 }
@@ -126,7 +126,8 @@ export type Penalty = {
 }
 
 export type CreateReservationInput = {
-  bookId: number
+  idUsuario: number
+  idLibro: number
 }
 
 export type RegisterInput = {

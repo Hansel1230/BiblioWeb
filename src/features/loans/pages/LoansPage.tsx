@@ -8,6 +8,8 @@ import { EmptyState } from '../../../components/ui/EmptyState'
 import { ErrorState } from '../../../components/ui/ErrorState'
 import { LoadingState } from '../../../components/ui/LoadingState'
 import { SuccessMessage } from '../../../components/ui/SuccessMessage'
+import { ApiError } from '../../../lib/api/client'
+import { useBookCopies } from '../../books/hooks/useBookCopies'
 
 export function LoansPage() {
   const currentUser = getCurrentUser()
@@ -21,12 +23,14 @@ export function LoansPage() {
   const [showForm, setShowForm] = useState(false)
   const [userId, setUserId] = useState('')
   const [bookId, setBookId] = useState('')
+  const [copyId, setCopyId] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [success, setSuccess] = useState('')
+  const { data: copies = [], isLoading: copiesLoading } = useBookCopies(Number(bookId))
   const visibleLoans = isReader && currentUser
-    ? loans.filter((loan) => loan.userEmail.toLowerCase() === currentUser.email.toLowerCase())
+    ? loans.filter((loan) => loan.userId === currentUser.id || loan.userEmail.toLowerCase() === currentUser.email.toLowerCase())
     : loans
   const filteredLoans = useMemo(() => visibleLoans.filter((loan) => {
     const query = search.toLowerCase()
@@ -35,12 +39,19 @@ export function LoansPage() {
 
   const handleCreateLoan = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const dueDateUtc = new Date(`${dueDate}T23:59:59.000Z`)
+    if (!Number.isFinite(dueDateUtc.getTime()) || dueDateUtc <= new Date()) {
+      createLoanMutation.reset()
+      setSuccess('La fecha límite debe ser una fecha futura.')
+      return
+    }
     createLoanMutation.mutate(
-      { userId: Number(userId), bookId: Number(bookId), dueDate },
+      { idUsuario: Number(userId), idEjemplar: Number(copyId), fechaVencimiento: dueDateUtc.toISOString() },
       {
         onSuccess: () => {
           setUserId('')
           setBookId('')
+          setCopyId('')
           setDueDate('')
           setShowForm(false)
           setSuccess('Préstamo registrado correctamente.')
@@ -48,6 +59,16 @@ export function LoansPage() {
       },
     )
   }
+
+  const apiError = createLoanMutation.error
+  const loanErrorMessage = apiError instanceof ApiError
+    ? apiError.status === 400 ? 'Los datos del préstamo no son válidos.'
+      : apiError.status === 401 ? 'Tu sesión no es válida. Inicia sesión nuevamente.'
+        : apiError.status === 404 ? 'El usuario o ejemplar no existe.'
+          : apiError.status === 409 ? 'El ejemplar ya está prestado o no está disponible.'
+            : apiError.status === 422 ? 'La fecha o los datos del préstamo no cumplen las reglas del API.'
+              : apiError.status >= 500 ? 'La API no pudo crear el préstamo.' : apiError.message
+    : createLoanMutation.error instanceof Error ? createLoanMutation.error.message : ''
 
   return (
     <section className="page-shell">
@@ -68,12 +89,13 @@ export function LoansPage() {
         <form className="form-panel" onSubmit={handleCreateLoan}>
           <h2>Registrar préstamo</h2>
           <label className="field"><span>Usuario</span><select value={userId} onChange={(event) => setUserId(event.target.value)} required><option value="">Selecciona un usuario</option>{users.filter((user) => user.active).map((user) => <option key={user.id} value={user.id}>{user.name}</option>)}</select></label>
-          <label className="field"><span>Libro disponible</span><select value={bookId} onChange={(event) => setBookId(event.target.value)} required><option value="">Selecciona un libro</option>{books.filter((book) => book.available).map((book) => <option key={book.id} value={book.id}>{book.title}</option>)}</select></label>
+          <label className="field"><span>Libro</span><select value={bookId} onChange={(event) => { setBookId(event.target.value); setCopyId('') }} required><option value="">Selecciona un libro</option>{books.map((book) => <option key={book.id} value={book.id}>{book.title}</option>)}</select></label>
+          <label className="field"><span>Ejemplar disponible</span><select value={copyId} onChange={(event) => setCopyId(event.target.value)} required disabled={!bookId || copiesLoading}><option value="">{copiesLoading ? 'Cargando ejemplares…' : 'Selecciona un ejemplar'}</option>{copies.filter((copy) => copy.status === 'available').map((copy) => <option key={copy.id} value={copy.id}>{copy.inventoryCode}</option>)}</select></label>
           <label className="field">
             <span>Fecha límite</span>
             <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} required />
           </label>
-          {createLoanMutation.isError && <p className="error-text">No se pudo registrar el préstamo.</p>}
+          {createLoanMutation.isError && <ErrorState message={`${loanErrorMessage} ${apiError instanceof ApiError ? (apiError.details ?? []).join(' ') : ''}`} />}
           <div className="form-actions">
             <button type="button" className="secondary-button" onClick={() => setShowForm(false)}>Cerrar</button>
             <button type="submit" className="primary-button" disabled={createLoanMutation.isPending}>
@@ -98,7 +120,7 @@ export function LoansPage() {
                 <tr><td colSpan={5}><EmptyState message={isReader ? 'No tienes préstamos asignados.' : 'No hay préstamos registrados.'} /></td></tr>
               ) : filteredLoans.map((loan: Loan) => (
                 <tr key={loan.id}>
-                  <td>{loan.userName}</td>
+                  <td>{users.find((user) => user.id === loan.userId)?.name ?? loan.userName}</td>
                   <td>{loan.bookTitle}</td>
                   <td>{loan.dueDate}</td>
                   <td>
