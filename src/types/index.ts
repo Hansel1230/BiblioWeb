@@ -1,6 +1,8 @@
 export type UserRole = 'admin' | 'lector'
 export type BackendRole = 'Administrator' | 'Librarian' | 'Reader' | 'Student'
 export type BackendUserStatus = 'Active' | 'Inactive' | 'Blocked'
+export type BackendRoleCode = 0 | 1 | 2 | 3
+export type BackendUserStatusCode = 0 | 1 | 2
 
 export type CopyStatus = 'available' | 'reserved' | 'loaned' | 'maintenance' | 'retired'
 
@@ -69,6 +71,19 @@ export type User = {
   email: string
   role: UserRole
   active: boolean
+  backendRole?: BackendRole
+  status?: BackendUserStatus
+}
+
+export type CreateUserInput = {
+  nombreCompleto: string
+  correo: string
+  contrasena: string
+  rol: BackendRoleCode
+}
+
+export type UpdateUserInput = Partial<Omit<CreateUserInput, 'contrasena'>> & {
+  estado?: BackendUserStatusCode
 }
 
 export type Loan = {

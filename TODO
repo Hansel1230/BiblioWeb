@@ -654,15 +654,15 @@
 
 ### 14.6. Módulo 4 - Usuarios y roles
 
-- [ ] Implementar `GET /api/users` y `GET /api/users/{id}`.
-- [ ] Implementar `POST /api/users`.
-- [ ] Implementar `PUT` o `PATCH /api/users/{id}`.
-- [ ] Implementar cambio de estado y baja lógica.
+- [x] Implementar `GET /api/users` y `GET /api/users/{id}`.
+- [x] Implementar `POST /api/users`.
+- [x] Implementar `PUT` o `PATCH /api/users/{id}`.
+- [x] Implementar cambio de estado y baja lógica.
 - [x] Mapear roles backend a etiquetas y permisos de la interfaz.
-- [ ] Extraer `UserForm` con validación tipada.
+- [x] Extraer `UserForm` con validación tipada.
 - [x] Eliminar escritura directa de `localStorage` en `UsersPage`.
 - [ ] No permitir que el frontend otorgue permisos no autorizados.
-- [ ] Invalidar usuarios después de crear o editar.
+- [x] Invalidar usuarios después de crear o editar.
 - [ ] Probar CRUD, roles, estados, duplicidad de correo y permisos.
 
 ### 14.7. Módulo 5 - Categorías y ejemplares

@@ -27,9 +27,9 @@ export const defaultMockCopies: BookCopy[] = [
 ]
 
 export const defaultMockUsers: User[] = [
-  { id: 1, name: 'Elena Díaz', email: 'admin@biblio.com', role: 'admin', active: true },
-  { id: 2, name: 'Pedro Ruiz', email: 'lector@biblio.com', role: 'lector', active: true },
-  { id: 3, name: 'Ana García', email: 'ana@biblio.com', role: 'admin', active: false },
+  { id: 1, name: 'Elena Díaz', email: 'admin@biblio.com', role: 'admin', backendRole: 'Administrator', status: 'Active', active: true },
+  { id: 2, name: 'Pedro Ruiz', email: 'lector@biblio.com', role: 'lector', backendRole: 'Reader', status: 'Active', active: true },
+  { id: 3, name: 'Ana García', email: 'ana@biblio.com', role: 'admin', backendRole: 'Librarian', status: 'Inactive', active: false },
 ]
 
 export const defaultMockLoans: Loan[] = [
