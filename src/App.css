@@ -226,6 +226,20 @@ h2 {
   padding: 12px 14px;
 }
 
+.field textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.8);
+  color: white;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.field small {
+  color: #fca5a5;
+}
+
 .switch-row {
   display: flex;
   align-items: center;

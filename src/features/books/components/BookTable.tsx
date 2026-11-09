@@ -5,11 +5,12 @@ type BookTableProps = {
   isReader: boolean
   onEdit?: (book: Book) => void
   onDelete?: (id: number) => void
+  onCopies?: (book: Book) => void
 }
 
-export function BookTable({ books, isReader, onEdit, onDelete }: BookTableProps) {
-  const showActions = !isReader && Boolean(onEdit || onDelete)
+export function BookTable({ books, isReader, onEdit, onDelete, onCopies }: BookTableProps) {
+  const showActions = !isReader && Boolean(onEdit || onDelete || onCopies)
   return <div className="table-panel"><table><caption>Libros registrados</caption><thead><tr><th scope="col">Título</th><th scope="col">Autor</th><th scope="col">Categoría</th><th scope="col">Disponibilidad</th>{showActions && <th scope="col">Acciones</th>}</tr></thead><tbody>
-    {books.length === 0 ? <tr><td colSpan={showActions ? 5 : 4}>No hay libros registrados.</td></tr> : books.map((book) => <tr key={book.id}><td>{book.title}</td><td>{book.author}</td><td>{book.category}</td><td><span className={book.available ? 'status ok' : 'status warning'}>{book.available ? 'Disponible' : 'Prestado'}</span></td>{showActions && <td><div className="table-actions"><button type="button" className="table-button secondary-button" onClick={() => onEdit?.(book)}>Editar</button><button type="button" className="table-button danger-button" onClick={() => onDelete?.(book.id)}>Eliminar</button></div></td>}</tr>)}
+    {books.length === 0 ? <tr><td colSpan={showActions ? 5 : 4}>No hay libros registrados.</td></tr> : books.map((book) => <tr key={book.id}><td>{book.title}</td><td>{book.author}</td><td>{book.category}</td><td><span className={book.available ? 'status ok' : 'status warning'}>{book.available ? 'Disponible' : 'Prestado'}</span></td>{showActions && <td><div className="table-actions"><button type="button" className="table-button secondary-button" onClick={() => onCopies?.(book)}>Ejemplares</button><button type="button" className="table-button secondary-button" onClick={() => onEdit?.(book)}>Editar</button><button type="button" className="table-button danger-button" onClick={() => onDelete?.(book.id)}>Eliminar</button></div></td>}</tr>)}
   </tbody></table></div>
 }

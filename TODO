@@ -640,15 +640,15 @@
 
 ### 14.5. Módulo 3 - Administración de libros
 
-- [ ] Implementar `POST /api/books`.
-- [ ] Implementar `PUT` o `PATCH /api/books/{id}` según Swagger.
-- [ ] Implementar `DELETE /api/books/{id}` como baja lógica.
-- [ ] Extraer `BookForm` con React Hook Form y Zod.
-- [ ] Mapear `titulo`, `autor`, `editorial`, `anioPublicacion`,
+- [x] Implementar `POST /api/books`.
+- [x] Implementar `PUT` o `PATCH /api/books/{id}` según Swagger.
+- [x] Implementar `DELETE /api/books/{id}` como baja lógica.
+- [x] Extraer `BookForm` con React Hook Form y Zod.
+- [x] Mapear `titulo`, `autor`, `editorial`, `anioPublicacion`,
       `descripcion` e `idCategoria`.
 - [x] Eliminar escritura directa de `localStorage` en `BooksPage`.
-- [ ] Invalidar catálogo y detalle después de cada mutación.
-- [ ] Restringir creación, edición y eliminación a `Administrator` y
+- [x] Invalidar catálogo y detalle después de cada mutación.
+- [x] Restringir creación, edición y eliminación a `Administrator` y
       `Librarian`.
 - [ ] Probar validaciones, permisos, conflictos y baja lógica.
 
@@ -668,11 +668,11 @@
 ### 14.7. Módulo 5 - Categorías y ejemplares
 
 - [ ] Implementar consulta y creación de categorías.
-- [ ] Separar definitivamente libro de ejemplar.
-- [ ] Implementar listado de ejemplares por libro.
-- [ ] Implementar creación de ejemplares.
-- [ ] Implementar consulta, cambio de estado y baja de ejemplares.
-- [ ] Mostrar estados `Available`, `Reserved`, `OnLoan`, `Maintenance` y
+- [x] Separar definitivamente libro de ejemplar.
+- [x] Implementar listado de ejemplares por libro.
+- [x] Implementar creación de ejemplares.
+- [x] Implementar consulta, cambio de estado y baja de ejemplares.
+- [x] Mostrar estados `Available`, `Reserved`, `OnLoan`, `Maintenance` y
       `Retired` con etiquetas en español.
 - [ ] Crear selección de ejemplar en el formulario de préstamo.
 - [ ] Probar disponibilidad y transiciones de estado.

@@ -1,16 +1,29 @@
-import type { Book, DashboardData, Loan, User } from '../types'
+import type { Book, BookCopy, Category, DashboardData, Loan, User } from '../types'
 
 export const MOCK_KEYS = {
   books: 'biblioweb-mock-books',
   users: 'biblioweb-mock-users',
   loans: 'biblioweb-mock-loans',
   reservations: 'biblioweb-mock-reservations',
+  copies: 'biblioweb-mock-copies',
 } as const
 
 export const defaultMockBooks: Book[] = [
   { id: 1, title: 'El Quijote', author: 'Miguel de Cervantes', category: 'Clásico', isbn: '9788424118174', available: true, copies: 3 },
   { id: 2, title: 'Cien años de soledad', author: 'Gabriel García Márquez', category: 'Literatura', isbn: '9780307474728', available: false, copies: 2 },
   { id: 3, title: 'La Metamorfosis', author: 'Franz Kafka', category: 'Ficción', isbn: '9788420674209', available: true, copies: 1 },
+]
+
+export const defaultMockCategories: Category[] = [
+  { id: 1, name: 'Clásico' },
+  { id: 2, name: 'Literatura' },
+  { id: 3, name: 'Ficción' },
+]
+
+export const defaultMockCopies: BookCopy[] = [
+  { id: 1, bookId: 1, inventoryCode: 'INV-00001', status: 'available', location: 'Estante A1' },
+  { id: 2, bookId: 1, inventoryCode: 'INV-00002', status: 'loaned', location: 'Estante A1' },
+  { id: 3, bookId: 2, inventoryCode: 'INV-00003', status: 'available', location: 'Estante B1' },
 ]
 
 export const defaultMockUsers: User[] = [

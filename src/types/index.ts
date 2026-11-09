@@ -2,7 +2,7 @@ export type UserRole = 'admin' | 'lector'
 export type BackendRole = 'Administrator' | 'Librarian' | 'Reader' | 'Student'
 export type BackendUserStatus = 'Active' | 'Inactive' | 'Blocked'
 
-export type CopyStatus = 'available' | 'reserved' | 'loaned' | 'maintenance'
+export type CopyStatus = 'available' | 'reserved' | 'loaned' | 'maintenance' | 'retired'
 
 export type DashboardStat = {
   label: string
@@ -26,6 +26,28 @@ export type Book = {
   isbn?: string
   description?: string
   copies?: number
+  categoryId?: number
+  publisher?: string
+  publicationYear?: number
+}
+
+export type Category = {
+  id: number
+  name: string
+}
+
+export type CreateBookInput = {
+  isbn?: string
+  titulo: string
+  autor: string
+  idCategoria?: number
+  editorial?: string
+  anioPublicacion?: number
+  descripcion?: string
+}
+
+export type UpdateBookInput = Partial<CreateBookInput> & {
+  estaActivo?: boolean
 }
 
 export type BookCopy = {
@@ -34,6 +56,11 @@ export type BookCopy = {
   inventoryCode: string
   status: CopyStatus
   location?: string
+}
+
+export type CreateBookCopyInput = {
+  codigoInventario: string
+  notas?: string
 }
 
 export type User = {

@@ -31,7 +31,9 @@ export function MainLayout() {
 
         <nav className="nav-menu">
           {navigation
-            .filter((item) => (item.to !== '/users' || isAdmin) && (item.to !== '/reservations' || currentUser?.role === 'lector'))
+            .filter((item) => (item.to !== '/users' || isAdmin)
+              && (item.to !== '/books' || isAdmin)
+              && (item.to !== '/reservations' || currentUser?.role === 'lector'))
             .map((item) => (
               <NavLink
                 key={item.to}

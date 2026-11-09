@@ -2,6 +2,8 @@ export const endpoints = {
   health: '/api/health',
   dashboard: '/api/dashboard/summary',
   books: '/api/books',
+  categories: '/api/categories',
+  copies: '/api/copies',
   users: '/api/users',
   loans: '/api/loans',
   login: '/api/auth/login',
