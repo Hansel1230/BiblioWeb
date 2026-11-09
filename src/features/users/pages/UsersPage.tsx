@@ -1,200 +1,50 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import type { User, UserRole } from '../../../types'
-import { getCurrentUser } from '../../../lib/auth/session'
-
-const STORAGE_KEY = 'biblioweb-users'
+import { ErrorState } from '../../../components/ui/ErrorState'
+import { LoadingState } from '../../../components/ui/LoadingState'
+import type { UserRole } from '../../../types'
+import { useUsers } from '../hooks/useUsers'
+import { UserTable } from '../components/UserTable'
+import { UserForm } from '../components/UserForm'
+import { ApiError } from '../../../lib/api/client'
+import { SuccessMessage } from '../../../components/ui/SuccessMessage'
+import { useCreateUser, useDeleteUser, useUpdateUser, useUpdateUserStatus } from '../hooks/useUsers'
+import type { BackendUserStatus, CreateUserInput, UpdateUserInput, User } from '../../../types'
+import { useState } from 'react'
 
 const roleLabels: Record<UserRole, string> = {
   admin: 'Administrador',
   lector: 'Lector',
 }
 
-const defaultUsers: User[] = [
-  { id: 1, name: 'Elena Díaz', email: 'admin@biblio.com', role: 'admin', active: true },
-  { id: 2, name: 'Pedro Ruiz', email: 'lector@biblio.com', role: 'lector', active: true },
-  { id: 3, name: 'Ana García', email: 'ana@biblio.com', role: 'admin', active: false },
-]
-
-type UserFormData = {
-  name: string
-  email: string
-  role: UserRole
-  active: boolean
-}
-
-const emptyForm: UserFormData = {
-  name: '',
-  email: '',
-  role: 'lector',
-  active: true,
-}
-
-function readUsersFromStorage(): User[] {
-  if (typeof window === 'undefined') {
-    return defaultUsers
-  }
-
-  try {
-    const savedUsers = window.localStorage.getItem(STORAGE_KEY)
-
-    if (!savedUsers) {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultUsers))
-      return defaultUsers
-    }
-
-    const parsedUsers = JSON.parse(savedUsers) as User[]
-
-    if (Array.isArray(parsedUsers)) {
-      return parsedUsers.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        active: user.active,
-      }))
-    }
-
-    return []
-  } catch (error) {
-    console.error('Error al leer usuarios guardados:', error)
-    return defaultUsers
-  }
-}
-
 export function UsersPage() {
-  const [users, setUsers] = useState<User[]>(() => readUsersFromStorage())
+  const { data: users = [], isLoading, isError, refetch } = useUsers()
+  const createMutation = useCreateUser()
+  const updateMutation = useUpdateUser()
+  const statusMutation = useUpdateUserStatus()
+  const deleteMutation = useDeleteUser()
+  const [editingUser, setEditingUser] = useState<User>()
   const [showForm, setShowForm] = useState(false)
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [error, setError] = useState('')
-  const [formData, setFormData] = useState<UserFormData>(emptyForm)
+  const [successMessage, setSuccessMessage] = useState('')
+  const mutation = editingUser ? updateMutation : createMutation
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
-  }, [users])
-
-  const resetForm = () => {
-    setShowForm(false)
-    setEditingId(null)
-    setFormData(emptyForm)
-    setError('')
-  }
-
-  const openCreateForm = () => {
-    setEditingId(null)
-    setFormData(emptyForm)
-    setError('')
-    setShowForm(true)
-  }
-
-  const openEditForm = (user: User) => {
-    setEditingId(user.id)
-    setFormData({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      active: user.active,
-    })
-    setError('')
-    setShowForm(true)
-  }
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const target = event.target
-    const name = target.name
-    const type = target instanceof HTMLInputElement ? target.type : 'select'
-    const value = target.value
-
-    if (type === 'checkbox') {
-      const checked = target instanceof HTMLInputElement ? target.checked : false
-      setFormData((currentForm) => ({ ...currentForm, active: checked }))
-      return
-    }
-
-    if (name === 'role') {
-      setFormData((currentForm) => ({
-        ...currentForm,
-        role: value as UserRole,
-      }))
-      return
-    }
-
-    setFormData((currentForm) => ({
-      ...currentForm,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    const name = formData.name.trim()
-    const email = formData.email.trim()
-
-    if (!name || !email) {
-      setError('Completa nombre y correo electrónico.')
-      return
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('Ingresa un email válido.')
-      return
-    }
-
-    if (editingId !== null) {
-      setUsers((currentUsers) =>
-        currentUsers.map((user) =>
-          user.id === editingId
-            ? {
-                ...user,
-                name,
-                email,
-                role: formData.role,
-                active: formData.active,
-              }
-            : user,
-        ),
-      )
+  function closeForm() { setShowForm(false); setEditingUser(undefined) }
+  function saveUser(input: CreateUserInput | UpdateUserInput) {
+    setSuccessMessage('')
+    if (editingUser) {
+      updateMutation.mutate({ id: editingUser.id, input }, { onSuccess: () => { setSuccessMessage('Usuario actualizado correctamente.'); closeForm() } })
     } else {
-      const newUser: User = {
-        id: Date.now(),
-        name,
-        email,
-        role: formData.role,
-        active: formData.active,
-      }
-
-      setUsers((currentUsers) => [newUser, ...currentUsers])
+      createMutation.mutate(input as CreateUserInput, { onSuccess: () => { setSuccessMessage('Usuario creado correctamente.'); closeForm() } })
     }
-
-    resetForm()
   }
-
-  const handleDeleteUser = (userId: number) => {
-    const userToDelete = users.find((user) => user.id === userId)
-    const currentUser = getCurrentUser()
-
-    if (!userToDelete) {
-      return
-    }
-
-    if (userToDelete.role === 'admin') {
-      setError('No se puede eliminar un administrador. Desactívalo en su lugar.')
-      return
-    }
-
-    if (currentUser?.email.toLowerCase() === userToDelete.email.toLowerCase()) {
-      setError('No puedes eliminar tu propio usuario.')
-      return
-    }
-
-    const confirmed = window.confirm(`¿Deseas eliminar al usuario "${userToDelete.name}"?`)
-
-    if (!confirmed) {
-      return
-    }
-
-    setUsers((currentUsers) => currentUsers.filter((user) => user.id !== userId))
+  function toggleStatus(user: User) {
+    const estado: BackendUserStatus = user.status === 'Blocked' ? 'Active' : 'Blocked'
+    statusMutation.mutate({ id: user.id, estado }, { onSuccess: () => setSuccessMessage('Estado del usuario actualizado.') })
   }
+  function removeUser(id: number) {
+    if (!window.confirm('¿Deseas desactivar este usuario? La eliminación será una baja lógica.')) return
+    deleteMutation.mutate(id, { onSuccess: () => setSuccessMessage('Usuario desactivado correctamente.') })
+  }
+  const mutationError = createMutation.error ?? updateMutation.error ?? statusMutation.error ?? deleteMutation.error
+  const errorMessage = mutationError instanceof ApiError ? [mutationError.message, ...(mutationError.details ?? [])].join(' ') : mutationError instanceof Error ? mutationError.message : 'No se pudo completar la operación.'
 
   return (
     <section className="page-shell">
@@ -202,120 +52,25 @@ export function UsersPage() {
         <div>
           <p className="eyebrow">Usuarios</p>
           <h1>Gestión de usuarios</h1>
+          <p>Administra usuarios, roles y estados de acceso.</p>
         </div>
-        <button type="button" className="primary-button" onClick={openCreateForm}>
-          Nuevo usuario
-        </button>
+        {!showForm && <button type="button" className="primary-button" onClick={() => { setSuccessMessage(''); setShowForm(true) }}>Nuevo usuario</button>}
       </div>
 
-      {showForm && (
-        <form className="form-panel" onSubmit={handleSubmit}>
-          <h2>{editingId !== null ? 'Editar usuario' : 'Registrar nuevo usuario'}</h2>
-
-          <div className="form-grid">
-            <label className="field">
-              <span>Nombre</span>
-              <input
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Ej. Ana Gómez"
-              />
-            </label>
-
-            <label className="field">
-              <span>Email</span>
-              <input
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Ej. ana@biblio.com"
-              />
-            </label>
-
-            <label className="field">
-              <span>Rol</span>
-              <select name="role" value={formData.role} onChange={handleInputChange}>
-                <option value="admin">Administrador</option>
-                <option value="lector">Lector</option>
-              </select>
-            </label>
-
-            <label className="field">
-              <span>Estado</span>
-              <div className="switch-row">
-                <span>{formData.active ? 'Activo' : 'Inactivo'}</span>
-                <input
-                  type="checkbox"
-                  name="active"
-                  checked={formData.active}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </label>
-          </div>
-
-          {error && <p className="error-text">{error}</p>}
-
-          <div className="form-actions">
-            <button type="button" className="secondary-button" onClick={resetForm}>
-              Cerrar
-            </button>
-            <button type="submit" className="primary-button">
-              {editingId !== null ? 'Actualizar usuario' : 'Guardar usuario'}
-            </button>
-          </div>
-        </form>
+      {showForm && <UserForm user={editingUser} isPending={mutation.isPending} onSubmit={saveUser} onCancel={closeForm} />}
+      {mutationError && <ErrorState message={errorMessage} />}
+      {successMessage && <SuccessMessage message={successMessage} />}
+      {isLoading && <LoadingState message="Cargando usuarios desde la API…" />}
+      {isError && <ErrorState message="No se pudieron cargar los usuarios desde la API." onRetry={() => void refetch()} />}
+      {!isLoading && !isError && (
+        <UserTable
+          users={users}
+          roleLabels={roleLabels}
+          onEdit={(user) => { setEditingUser(user); setShowForm(true) }}
+          onStatusChange={toggleStatus}
+          onDelete={removeUser}
+        />
       )}
-
-      <div className="table-panel">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.length === 0 ? (
-              <tr>
-                <td colSpan={5}>No hay usuarios registrados.</td>
-              </tr>
-            ) : (
-              users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>{roleLabels[user.role]}</td>
-                  <td>
-                    <span className={user.active ? 'status ok' : 'status warning'}>
-                      {user.active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="table-button secondary-button" onClick={() => openEditForm(user)}>
-                        Editar
-                      </button>
-                      <button
-                        type="button"
-                        className="table-button danger-button"
-                        onClick={() => handleDeleteUser(user.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
     </section>
   )
 }
